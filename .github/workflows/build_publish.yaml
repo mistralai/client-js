@@ -7,8 +7,8 @@ on:
     # We only deploy on tags and main branch
     tags:
       # Only run on tags that match the following regex
-      # This will match tags like v1.0.0, v1.0.1, etc.
-      - v[0-9]+.[0-9]+.[0-9]+
+      # This will match tags like 1.0.0, 1.0.1, etc.
+      - "[0-9]+.[0-9]+.[0-9]+"
 
   # Build on pull requests
   pull_request:
@@ -38,3 +38,33 @@ jobs:
       - name: ESlint check
         run: |
           ./node_modules/.bin/eslint .
+
+  publish:
+    needs: lint
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags')
+
+    steps:
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Set node version
+      - name: set node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # Install Build stuff
+      - name: Install Dependencies
+        run: |
+          npm version ${{ github.ref }}
+          npm install
+
+
+      # Publish
+      - name: Publish
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          access: public

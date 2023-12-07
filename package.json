@@ -1,10 +1,11 @@
 {
-  "name": "mistralai",
+  "name": "@mistralai/mistralai",
   "version": "1.0.0",
   "description": "",
   "author": "bam4d@mistral.ai",
   "license": "ISC",
   "type": "module",
+  "main": "src/client.js",
   "dependencies": {
     "axios": "^1.6.2",
     "axios-retry": "^4.0.0"
