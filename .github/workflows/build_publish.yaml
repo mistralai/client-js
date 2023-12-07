@@ -58,7 +58,7 @@ jobs:
       # Install Build stuff
       - name: Install Dependencies
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm version ${{ github.ref_name }}
           npm install
