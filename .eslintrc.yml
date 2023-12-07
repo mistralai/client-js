@@ -1,0 +1,10 @@
+env:
+  browser: true
+  es2021: true
+extends: google
+parserOptions:
+  ecmaVersion: latest
+  sourceType: module
+rules: 
+  indent: ["error", 2]
+  space-before-function-paren: ["error", "never"]

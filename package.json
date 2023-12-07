@@ -1,0 +1,17 @@
+{
+  "name": "mistralai",
+  "version": "1.0.0",
+  "description": "",
+  "author": "bam4d@mistral.ai",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "axios-retry": "^4.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "eslint-config-google": "^0.14.0",
+    "prettier": "2.8.8"
+  }
+}
