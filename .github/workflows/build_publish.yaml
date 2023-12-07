@@ -60,7 +60,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm version --no ${{ github.ref }}
+          npm version ${{ github.ref }}
           npm install
           npm publish 
 
