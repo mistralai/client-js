@@ -57,14 +57,11 @@ jobs:
 
       # Install Build stuff
       - name: Install Dependencies
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm version ${{ github.ref }}
+          npm version --no ${{ github.ref }}
           npm install
+          npm publish 
 
-
-      # Publish
-      - name: Publish
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          access: public
+      
