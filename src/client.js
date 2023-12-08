@@ -14,7 +14,7 @@ class MistralClient {
    * @param {*} apiKey
    * @param {*} endpoint
    */
-  constructor(apiKey, endpoint = ENDPOINT) {
+  constructor(apiKey=process.env.MISTRAL_API_KEY, endpoint = ENDPOINT) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
 
