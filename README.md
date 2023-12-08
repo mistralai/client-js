@@ -12,5 +12,5 @@ You can install the library in your project using:
 
 You can run the examples in the `examples/` directory using
 ```bash
-node [examples/chat_no_streaming.js]
+node examples/chat_no_streaming.js
 ```
