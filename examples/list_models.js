@@ -7,5 +7,5 @@ const client = new MistralClient(apiKey);
 const listModelsResponse = await client.listModels();
 
 listModelsResponse.data.forEach((model) => {
-    console.log('Model:', model);
+  console.log('Model:', model);
 });
