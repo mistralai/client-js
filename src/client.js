@@ -163,7 +163,6 @@ class MistralClient {
       true,
       safeMode,
     );
-    console.log(request);
     const response = await this._request(
       'post', 'v1/chat/completions', request,
     );
