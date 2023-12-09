@@ -92,6 +92,10 @@ class MistralClient {
   };
 
 
+  /**
+   * Returns a list of the available models
+   * @return {Promise<Object>}
+   */
   listModels = async function() {
     const response = await this._request('get', 'v1/models');
     return response;
