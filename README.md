@@ -22,5 +22,5 @@ npm install .
 You can then run the examples using node:
 
 ```bash
-MISTARL_API_KEY=XXXX node chat_with_streaming.js
+MISTRAL_API_KEY=XXXX node chat_with_streaming.js
 ```
