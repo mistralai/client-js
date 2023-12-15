@@ -1,8 +1,36 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import {Readable} from 'stream';
 
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
+
+/**
+ * A generator that ensures Axios streaming response
+ * yield complete lines
+ * @param {*} axiosResponse
+ * @return {Promise<*>}
+ */
+async function* lineGenerator(axiosResponse) {
+  const axiosStream = Readable.from(axiosResponse);
+
+  let previous = '';
+  for await (const chunk of axiosStream) {
+    previous += chunk;
+    let eolIndex;
+    while ((eolIndex = previous.indexOf('\n')) >= 0) {
+      // Yield a line (excluding the newline character)
+      const line = previous.slice(0, eolIndex);
+      yield line;
+      // Remove the processed line from the buffer
+      previous = previous.slice(eolIndex + 1);
+    }
+  }
+  // If there's any remaining data after the loop, yield it as the last line
+  if (previous.length > 0) {
+    yield previous;
+  }
+}
 
 /**
  * MistralClient
@@ -171,18 +199,12 @@ class MistralClient {
       'post', 'v1/chat/completions', request,
     );
 
-    for await (const chunk of response) {
-      const chunkString = this.textDecoder.decode(chunk);
-      // split the chunks by new line
-      const chunkLines = chunkString.split('\n');
-      // Iterate through the lines
-      for (const chunkLine of chunkLines) {
-        // If the line starts with data: then it is a chunk
-        if (chunkLine.startsWith('data:')) {
-          const chunkData = chunkLine.substring(6).trim();
-          if (chunkData !== '[DONE]') {
-            yield JSON.parse(chunkData);
-          }
+    for await (const chunkLine of lineGenerator(response)) {
+      // If the line starts with data: then it is a chunk
+      if (chunkLine.startsWith('data:')) {
+        const chunkData = chunkLine.substring(6).trim();
+        if (chunkData !== '[DONE]') {
+          yield JSON.parse(chunkData);
         }
       }
     }
