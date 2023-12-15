@@ -47,23 +47,25 @@ class MistralClient {
     for (let attempts = 0; attempts < maxRetries; attempts++) {
       try {
         const response = await fetch(url, options);
-        
+
         if (response.ok) {
           return await (request?.stream ? response : response.json());
         } else if (RETRY_STATUS_CODES.includes(response.status)) {
           console.debug(`Retrying request, attempt: ${attempts + 1}`);
-          await new Promise(resolve => setTimeout(resolve, (attempts + 1) * 500));
+          // eslint-disable-next-line max-len
+          await new Promise((resolve) => setTimeout(resolve, (attempts + 1) * 500));
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       } catch (error) {
         console.error(`Request failed: ${error.message}`);
         if (attempts === maxRetries - 1) throw error;
-        await new Promise(resolve => setTimeout(resolve, (attempts + 1) * 500));
+        // eslint-disable-next-line max-len
+        await new Promise((resolve) => setTimeout(resolve, (attempts + 1) * 500));
       }
     }
     throw new Error('Max retries reached');
-  }
+  };
 
   /**
    * Creates a chat completion request
