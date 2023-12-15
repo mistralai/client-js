@@ -189,7 +189,7 @@ class MistralClient {
   };
 
   /**
-   * An embedddings endpoint that returns embeddings for a single,
+   * An embeddings endpoint that returns embeddings for a single,
    * or batch of inputs
    * @param {*} model The embedding model to use, e.g. mistral-embed
    * @param {*} input The input to embed,
