@@ -1,5 +1,9 @@
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
+let fetch;
+if (typeof globalThis.fetch === 'undefined') {
+  fetch = (await import('node-fetch')).default;
+} else {
+  fetch = globalThis.fetch;
+}
 
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
@@ -20,18 +24,6 @@ class MistralClient {
     this.apiKey = apiKey;
 
     this.textDecoder = new TextDecoder();
-
-    axiosRetry(axios, {
-      retries: 3,
-      retryCondition: (error) => {
-        return RETRY_STATUS_CODES.includes(error.response.status);
-      },
-
-      retryDelay: (retryCount, error) => {
-        console.debug(`retry attempt: ${retryCount}`, error);
-        return retryCount * 500;
-      },
-    });
   }
 
   /**
@@ -42,20 +34,36 @@ class MistralClient {
    * @return {Promise<*>}
    */
   _request = async function(method, path, request) {
-    const response = await axios({
+    const url = `${this.endpoint}/${path}`;
+    const options = {
       method: method,
-      url: `${this.endpoint}/${path}`,
-      data: request,
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
       },
-      responseType: request?.stream ? 'stream' : 'json',
-    }).catch((error) => {
-      console.error(error);
-      return error.response;
-    });
-    return response.data;
-  };
+      body: method !== 'get' ? JSON.stringify(request) : null,
+    };
+
+    const maxRetries = 3;
+    for (let attempts = 0; attempts < maxRetries; attempts++) {
+      try {
+        const response = await fetch(url, options);
+        
+        if (response.ok) {
+          return await (request?.stream ? response : response.json());
+        } else if (RETRY_STATUS_CODES.includes(response.status)) {
+          console.debug(`Retrying request, attempt: ${attempts + 1}`);
+          await new Promise(resolve => setTimeout(resolve, (attempts + 1) * 500));
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error(`Request failed: ${error.message}`);
+        if (attempts === maxRetries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, (attempts + 1) * 500));
+      }
+    }
+    throw new Error('Max retries reached');
+  }
 
   /**
    * Creates a chat completion request
