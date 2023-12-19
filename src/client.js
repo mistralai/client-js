@@ -69,21 +69,21 @@ class MistralClient {
           console.debug(`Retrying request, attempt: ${attempts + 1}`);
           // eslint-disable-next-line max-len
           await new Promise((resolve) =>
-            setTimeout(resolve, (attempts + 1) * 500),
+            setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
           );
         } else {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
       } catch (error) {
         console.error(`Request failed: ${error.message}`);
-        if (attempts === maxRetries - 1) throw error;
+        if (attempts === this.maxRetries - 1) throw error;
         // eslint-disable-next-line max-len
         await new Promise((resolve) =>
-          setTimeout(resolve, (attempts + 1) * 500),
+          setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
         );
       }
-      throw new Error('Max retries reached');
     }
+    throw new Error('Max retries reached');
   };
 
   /**
