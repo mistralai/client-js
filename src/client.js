@@ -1,6 +1,8 @@
 let fetch;
+let isNode = false;
 if (typeof globalThis.fetch === 'undefined') {
   fetch = (await import('node-fetch')).default;
+  isNode = true;
 } else {
   fetch = globalThis.fetch;
 }
@@ -8,6 +10,22 @@ if (typeof globalThis.fetch === 'undefined') {
 
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
+
+/**
+ * MistralAPIError
+ * @return {MistralAPIError}
+ * @extends {Error}
+ */
+class MistralAPIError extends Error {
+  /**
+   * A simple error class for Mistral API errors
+   * @param {*} message
+   */
+  constructor(message) {
+    super(message);
+    this.name = 'MistralAPIError';
+  }
+};
 
 /**
  * MistralClient
@@ -33,8 +51,6 @@ class MistralClient {
 
     this.maxRetries = maxRetries;
     this.timeout = timeout;
-
-    this.textDecoder = new TextDecoder();
   }
 
   /**
@@ -62,7 +78,29 @@ class MistralClient {
 
         if (response.ok) {
           if (request?.stream) {
-            return response.body;
+            if (isNode) {
+              return response.body;
+            } else {
+              const reader = response.body.getReader();
+              // Chrome does not support async iterators yet, so polyfill it
+              const asyncIterator = async function* () {
+                try {
+                  const decoder = new TextDecoder();
+                  while (true) {
+                    // Read from the stream
+                    const {done, value} = await reader.read();
+                    // Exit if we're done
+                    if (done) return;
+                    // Else yield the chunk
+                    yield decoder.decode(value);
+                  }
+                } finally {
+                  reader.releaseLock();
+                }
+              };
+
+              return asyncIterator();
+            }
           }
           return await response.json();
         } else if (RETRY_STATUS_CODES.includes(response.status)) {
@@ -72,10 +110,15 @@ class MistralClient {
             setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
           );
         } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new MistralAPIError(
+            `HTTP error! status: ${response.status}`,
+          );
         }
       } catch (error) {
         console.error(`Request failed: ${error.message}`);
+        if (error.name === 'MistralAPIError') {
+          throw error;
+        }
         if (attempts === this.maxRetries - 1) throw error;
         // eslint-disable-next-line max-len
         await new Promise((resolve) =>
