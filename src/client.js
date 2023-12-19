@@ -209,8 +209,8 @@ class MistralClient {
 
     for await (const chunk of response) {
       buffer += chunk;
-      const firstNewline = buffer.indexOf('\n');
-      if (firstNewline !== -1) {
+      let firstNewline;
+      while ((firstNewline = buffer.indexOf('\n')) !== -1) {
         const chunkLine = buffer.substring(0, firstNewline);
         buffer = buffer.substring(firstNewline + 1);
         if (chunkLine.startsWith('data:')) {
