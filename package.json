@@ -6,6 +6,10 @@
   "license": "ISC",
   "type": "module",
   "main": "src/client.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mistralai/client-js"
+  },
   "types": "src/mistralai.d.ts",
   "dependencies": {
     "axios": "^1.6.2",
