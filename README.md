@@ -37,7 +37,7 @@ listModels.forEach((model) => {
 ```typescript
 const chatStreamResponse = await client.chatStream({
   model: 'mistral-tiny',
-  messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+  messages: [{role: 'user', content: 'What is the best French cheese?'}],
 });
 
 console.log('Chat Stream:');
@@ -54,7 +54,7 @@ for await (const chunk of chatStreamResponse) {
 ```typescript
 const chatResponse = await client.chat({
   model: 'mistral-tiny',
-  messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+  messages: [{role: 'user', content: 'What is the best French cheese?'}],
 });
 
 console.log('Chat:', chatResponse.choices[0].message.content);
@@ -97,7 +97,7 @@ Get your own Mistral API Key: <https://docs.mistral.ai/#api-access>
 MISTRAL_API_KEY='your_api_key' node chat_with_streaming.js
 ```
 
-### Persisting API key in command line tool
+### Persisting the API key in environment
 
 Set your Mistral API Key as an environment variable. You only need to do this once.
 
@@ -113,4 +113,11 @@ You can then run the examples without appending the API key:
 
 ```bash
 node chat_with_streaming.js
+```
+After the env variable setup the client will find the `MISTRAL_API_KEY` by itself
+
+```typescript
+import MistralClient from '@mistralai/mistralai';
+
+const client = new MistralClient();
 ```
