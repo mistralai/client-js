@@ -11,32 +11,36 @@ You can install the library in your project using:
 `npm install @mistralai/mistralai`
 
 ## Usage
-### Set up
-```typescript
-import MistralClient from '@mistralai/mistralai';
 
-const apiKey = "Your API key";
+### Set up
+
+```typescript
+import MistralClient from "@mistralai/mistralai";
+
+const apiKey = process.env.MISTRAL_API_KEY || "your_api_key";
 
 const client = new MistralClient(apiKey);
 ```
 
 ### List models
+
 ```typescript
 const listModelsResponse = await client.listModels();
 const listModels = listModelsResponse.data;
 listModels.forEach((model) => {
-  console.log('Model:', model);
+  console.log("Model:", model);
 });
 ```
 
 ### Chat with streaming
+
 ```typescript
 const chatStreamResponse = await client.chatStream({
-  model: 'mistral-tiny',
-  messages: [{role: 'user', content: 'What is the best French cheese?'}],
+  model: "mistral-tiny",
+  messages: [{ role: "user", content: "What is the best French cheese?" }],
 });
 
-console.log('Chat Stream:');
+console.log("Chat Stream:");
 for await (const chunk of chatStreamResponse) {
   if (chunk.choices[0].delta.content !== undefined) {
     const streamText = chunk.choices[0].delta.content;
@@ -44,29 +48,34 @@ for await (const chunk of chatStreamResponse) {
   }
 }
 ```
+
 ### Chat without streaming
+
 ```typescript
 const chatResponse = await client.chat({
-  model: 'mistral-tiny',
-  messages: [{role: 'user', content: 'What is the best French cheese?'}],
+  model: "mistral-tiny",
+  messages: [{ role: "user", content: "What is the best French cheese?" }],
 });
 
-console.log('Chat:', chatResponse.choices[0].message.content);
+console.log("Chat:", chatResponse.choices[0].message.content);
 ```
-###Embeddings
+
+### Embeddings
+
 ```typescript
 const input = [];
 for (let i = 0; i < 1; i++) {
-  input.push('What is the best French cheese?');
+  input.push("What is the best French cheese?");
 }
 
 const embeddingsBatchResponse = await client.embeddings({
-  model: 'mistral-embed',
+  model: "mistral-embed",
   input: input,
 });
 
-console.log('Embeddings Batch:', embeddingsBatchResponse.data);
+console.log("Embeddings Batch:", embeddingsBatchResponse.data);
 ```
+
 ## Run examples
 
 You can run the examples in the examples directory by installing them locally:
@@ -76,23 +85,32 @@ cd examples
 npm install .
 ```
 
-### API Key Setup
+### API key setup
 
 Running the examples requires a Mistral AI API key.
 
-1. Get your own Mistral API Key: <https://docs.mistral.ai/#api-access>
-2. Set your Mistral API Key as an environment variable. You only need to do this once.
+Get your own Mistral API Key: <https://docs.mistral.ai/#api-access>
+
+### Run the examples
+
+```bash
+MISTRAL_API_KEY="your_api_key" node chat_with_streaming.js
+```
+
+### Persisting API key in command line tool
+
+Set your Mistral API Key as an environment variable. You only need to do this once.
 
 ```bash
 # set Mistral API Key (using zsh for example)
-$ echo 'export MISTRAL_API_KEY=[your_key_here]' >> ~/.zshenv
+$ echo 'export MISTRAL_API_KEY=[your_api_key]' >> ~/.zshenv
 
 # reload the environment (or just quit and open a new terminal)
 $ source ~/.zshenv
 ```
 
-You can then run the examples using node:
+You can then run the examples without appending the API key:
 
 ```bash
-MISTRAL_API_KEY=XXXX node chat_with_streaming.js
+node chat_with_streaming.js
 ```
