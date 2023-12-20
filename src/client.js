@@ -92,7 +92,7 @@ class MistralClient {
                     // Exit if we're done
                     if (done) return;
                     // Else yield the chunk
-                    yield decoder.decode(value);
+                    yield decoder.decode(value, {stream: true});
                   }
                 } finally {
                   reader.releaseLock();
