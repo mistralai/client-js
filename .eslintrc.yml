@@ -2,11 +2,12 @@ env:
   browser: true
   es2021: true
 extends: google
-ignorePatterns: 
+ignorePatterns:
   - examples/chat-react/
 parserOptions:
   ecmaVersion: latest
   sourceType: module
-rules: 
+rules:
   indent: ["error", 2]
   space-before-function-paren: ["error", "never"]
+  quotes: ["error", "single"]
