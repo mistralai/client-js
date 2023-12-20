@@ -1,8 +1,31 @@
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
+let fetch;
+let isNode = false;
+if (typeof globalThis.fetch === 'undefined') {
+  fetch = (await import('node-fetch')).default;
+  isNode = true;
+} else {
+  fetch = globalThis.fetch;
+}
+
 
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
+
+/**
+ * MistralAPIError
+ * @return {MistralAPIError}
+ * @extends {Error}
+ */
+class MistralAPIError extends Error {
+  /**
+   * A simple error class for Mistral API errors
+   * @param {*} message
+   */
+  constructor(message) {
+    super(message);
+    this.name = 'MistralAPIError';
+  }
+};
 
 /**
  * MistralClient
@@ -14,24 +37,20 @@ class MistralClient {
    * @param {*} apiKey can be set as an environment variable MISTRAL_API_KEY,
    * or provided in this parameter
    * @param {*} endpoint defaults to https://api.mistral.ai
+   * @param {*} maxRetries defaults to 5
+   * @param {*} timeout defaults to 120 seconds
    */
-  constructor(apiKey=process.env.MISTRAL_API_KEY, endpoint = ENDPOINT) {
+  constructor(
+    apiKey = process.env.MISTRAL_API_KEY,
+    endpoint = ENDPOINT,
+    maxRetries = 5,
+    timeout = 120,
+  ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
 
-    this.textDecoder = new TextDecoder();
-
-    axiosRetry(axios, {
-      retries: 3,
-      retryCondition: (error) => {
-        return RETRY_STATUS_CODES.includes(error.response.status);
-      },
-
-      retryDelay: (retryCount, error) => {
-        console.debug(`retry attempt: ${retryCount}`, error);
-        return retryCount * 500;
-      },
-    });
+    this.maxRetries = maxRetries;
+    this.timeout = timeout;
   }
 
   /**
@@ -42,19 +61,72 @@ class MistralClient {
    * @return {Promise<*>}
    */
   _request = async function(method, path, request) {
-    const response = await axios({
+    const url = `${this.endpoint}/${path}`;
+    const options = {
       method: method,
-      url: `${this.endpoint}/${path}`,
-      data: request,
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },
-      responseType: request?.stream ? 'stream' : 'json',
-    }).catch((error) => {
-      console.error(error);
-      return error.response;
-    });
-    return response.data;
+      body: method !== 'get' ? JSON.stringify(request) : null,
+      timeout: this.timeout * 1000,
+    };
+
+    for (let attempts = 0; attempts < this.maxRetries; attempts++) {
+      try {
+        const response = await fetch(url, options);
+
+        if (response.ok) {
+          if (request?.stream) {
+            if (isNode) {
+              return response.body;
+            } else {
+              const reader = response.body.getReader();
+              // Chrome does not support async iterators yet, so polyfill it
+              const asyncIterator = async function* () {
+                try {
+                  const decoder = new TextDecoder();
+                  while (true) {
+                    // Read from the stream
+                    const {done, value} = await reader.read();
+                    // Exit if we're done
+                    if (done) return;
+                    // Else yield the chunk
+                    yield decoder.decode(value, {stream: true});
+                  }
+                } finally {
+                  reader.releaseLock();
+                }
+              };
+
+              return asyncIterator();
+            }
+          }
+          return await response.json();
+        } else if (RETRY_STATUS_CODES.includes(response.status)) {
+          console.debug(`Retrying request, attempt: ${attempts + 1}`);
+          // eslint-disable-next-line max-len
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+          );
+        } else {
+          throw new MistralAPIError(
+            `HTTP error! status: ${response.status}`,
+          );
+        }
+      } catch (error) {
+        console.error(`Request failed: ${error.message}`);
+        if (error.name === 'MistralAPIError') {
+          throw error;
+        }
+        if (attempts === this.maxRetries - 1) throw error;
+        // eslint-disable-next-line max-len
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+        );
+      }
+    }
+    throw new Error('Max retries reached');
   };
 
   /**
@@ -91,7 +163,6 @@ class MistralClient {
     };
   };
 
-
   /**
    * Returns a list of the available models
    * @return {Promise<Object>}
@@ -120,7 +191,8 @@ class MistralClient {
     maxTokens,
     topP,
     randomSeed,
-    safeMode}) {
+    safeMode,
+  }) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -132,7 +204,9 @@ class MistralClient {
       safeMode,
     );
     const response = await this._request(
-      'post', 'v1/chat/completions', request,
+      'post',
+      'v1/chat/completions',
+      request,
     );
     return response;
   };
@@ -156,7 +230,8 @@ class MistralClient {
     maxTokens,
     topP,
     randomSeed,
-    safeMode}) {
+    safeMode,
+  }) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -168,20 +243,23 @@ class MistralClient {
       safeMode,
     );
     const response = await this._request(
-      'post', 'v1/chat/completions', request,
+      'post',
+      'v1/chat/completions',
+      request,
     );
 
+    let buffer = '';
+
     for await (const chunk of response) {
-      const chunkString = this.textDecoder.decode(chunk);
-      // split the chunks by new line
-      const chunkLines = chunkString.split('\n');
-      // Iterate through the lines
-      for (const chunkLine of chunkLines) {
-        // If the line starts with data: then it is a chunk
+      buffer += chunk;
+      let firstNewline;
+      while ((firstNewline = buffer.indexOf('\n')) !== -1) {
+        const chunkLine = buffer.substring(0, firstNewline);
+        buffer = buffer.substring(firstNewline + 1);
         if (chunkLine.startsWith('data:')) {
-          const chunkData = chunkLine.substring(6).trim();
-          if (chunkData !== '[DONE]') {
-            yield JSON.parse(chunkData);
+          const json = chunkLine.substring(6).trim();
+          if (json !== '[DONE]') {
+            yield JSON.parse(json);
           }
         }
       }
@@ -201,12 +279,9 @@ class MistralClient {
       model: model,
       input: input,
     };
-    const response = await this._request(
-      'post', 'v1/embeddings', request,
-    );
+    const response = await this._request('post', 'v1/embeddings', request);
     return response;
   };
 }
-
 
 export default MistralClient;
