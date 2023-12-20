@@ -15,9 +15,9 @@ You can install the library in your project using:
 ### Set up
 
 ```typescript
-import MistralClient from "@mistralai/mistralai";
+import MistralClient from '@mistralai/mistralai';
 
-const apiKey = process.env.MISTRAL_API_KEY || "your_api_key";
+const apiKey = process.env.MISTRAL_API_KEY || 'your_api_key';
 
 const client = new MistralClient(apiKey);
 ```
@@ -28,7 +28,7 @@ const client = new MistralClient(apiKey);
 const listModelsResponse = await client.listModels();
 const listModels = listModelsResponse.data;
 listModels.forEach((model) => {
-  console.log("Model:", model);
+  console.log('Model:', model);
 });
 ```
 
@@ -36,11 +36,11 @@ listModels.forEach((model) => {
 
 ```typescript
 const chatStreamResponse = await client.chatStream({
-  model: "mistral-tiny",
-  messages: [{ role: "user", content: "What is the best French cheese?" }],
+  model: 'mistral-tiny',
+  messages: [{ role: 'user', content: 'What is the best French cheese?' }],
 });
 
-console.log("Chat Stream:");
+console.log('Chat Stream:');
 for await (const chunk of chatStreamResponse) {
   if (chunk.choices[0].delta.content !== undefined) {
     const streamText = chunk.choices[0].delta.content;
@@ -53,11 +53,11 @@ for await (const chunk of chatStreamResponse) {
 
 ```typescript
 const chatResponse = await client.chat({
-  model: "mistral-tiny",
-  messages: [{ role: "user", content: "What is the best French cheese?" }],
+  model: 'mistral-tiny',
+  messages: [{ role: 'user', content: 'What is the best French cheese?' }],
 });
 
-console.log("Chat:", chatResponse.choices[0].message.content);
+console.log('Chat:', chatResponse.choices[0].message.content);
 ```
 
 ### Embeddings
@@ -65,15 +65,15 @@ console.log("Chat:", chatResponse.choices[0].message.content);
 ```typescript
 const input = [];
 for (let i = 0; i < 1; i++) {
-  input.push("What is the best French cheese?");
+  input.push('What is the best French cheese?');
 }
 
 const embeddingsBatchResponse = await client.embeddings({
-  model: "mistral-embed",
+  model: 'mistral-embed',
   input: input,
 });
 
-console.log("Embeddings Batch:", embeddingsBatchResponse.data);
+console.log('Embeddings Batch:', embeddingsBatchResponse.data);
 ```
 
 ## Run examples
@@ -94,7 +94,7 @@ Get your own Mistral API Key: <https://docs.mistral.ai/#api-access>
 ### Run the examples
 
 ```bash
-MISTRAL_API_KEY="your_api_key" node chat_with_streaming.js
+MISTRAL_API_KEY='your_api_key' node chat_with_streaming.js
 ```
 
 ### Persisting API key in command line tool
