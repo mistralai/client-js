@@ -13,11 +13,6 @@
   "scripts": {
     "start": "react-scripts start"
   },
-  // "eslintConfig": {
-  //   "extends": [
-  //     "react-app"
-  //   ]
-  // },
   "browserslist": {
     "production": [
       ">0.2%",

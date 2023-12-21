@@ -1,10 +1,7 @@
-let fetch;
 let isNode = false;
 if (typeof globalThis.fetch === 'undefined') {
-  fetch = (await import('node-fetch')).default;
+  globalThis.fetch = (await import('node-fetch')).default;
   isNode = true;
-} else {
-  fetch = globalThis.fetch;
 }
 
 
