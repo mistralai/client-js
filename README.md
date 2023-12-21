@@ -11,16 +11,19 @@ You can install the library in your project using:
 `npm install @mistralai/mistralai`
 
 ## Usage
+
 ### Set up
+
 ```typescript
 import MistralClient from '@mistralai/mistralai';
 
-const apiKey = "Your API key";
+const apiKey = process.env.MISTRAL_API_KEY || 'your_api_key';
 
 const client = new MistralClient(apiKey);
 ```
 
 ### List models
+
 ```typescript
 const listModelsResponse = await client.listModels();
 const listModels = listModelsResponse.data;
@@ -30,6 +33,7 @@ listModels.forEach((model) => {
 ```
 
 ### Chat with streaming
+
 ```typescript
 const chatStreamResponse = await client.chatStream({
   model: 'mistral-tiny',
@@ -44,7 +48,9 @@ for await (const chunk of chatStreamResponse) {
   }
 }
 ```
+
 ### Chat without streaming
+
 ```typescript
 const chatResponse = await client.chat({
   model: 'mistral-tiny',
@@ -53,7 +59,9 @@ const chatResponse = await client.chat({
 
 console.log('Chat:', chatResponse.choices[0].message.content);
 ```
-###Embeddings
+
+### Embeddings
+
 ```typescript
 const input = [];
 for (let i = 0; i < 1; i++) {
@@ -67,6 +75,7 @@ const embeddingsBatchResponse = await client.embeddings({
 
 console.log('Embeddings Batch:', embeddingsBatchResponse.data);
 ```
+
 ## Run examples
 
 You can run the examples in the examples directory by installing them locally:
@@ -76,23 +85,39 @@ cd examples
 npm install .
 ```
 
-### API Key Setup
+### API key setup
 
 Running the examples requires a Mistral AI API key.
 
-1. Get your own Mistral API Key: <https://docs.mistral.ai/#api-access>
-2. Set your Mistral API Key as an environment variable. You only need to do this once.
+Get your own Mistral API Key: <https://docs.mistral.ai/#api-access>
+
+### Run the examples
+
+```bash
+MISTRAL_API_KEY='your_api_key' node chat_with_streaming.js
+```
+
+### Persisting the API key in environment
+
+Set your Mistral API Key as an environment variable. You only need to do this once.
 
 ```bash
 # set Mistral API Key (using zsh for example)
-$ echo 'export MISTRAL_API_KEY=[your_key_here]' >> ~/.zshenv
+$ echo 'export MISTRAL_API_KEY=[your_api_key]' >> ~/.zshenv
 
 # reload the environment (or just quit and open a new terminal)
 $ source ~/.zshenv
 ```
 
-You can then run the examples using node:
+You can then run the examples without appending the API key:
 
 ```bash
-MISTRAL_API_KEY=XXXX node chat_with_streaming.js
+node chat_with_streaming.js
+```
+After the env variable setup the client will find the `MISTRAL_API_KEY` by itself
+
+```typescript
+import MistralClient from '@mistralai/mistralai';
+
+const client = new MistralClient();
 ```
