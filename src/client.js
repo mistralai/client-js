@@ -65,6 +65,7 @@ class MistralClient {
     const options = {
       method: method,
       headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },
@@ -104,14 +105,19 @@ class MistralClient {
           }
           return await response.json();
         } else if (RETRY_STATUS_CODES.includes(response.status)) {
-          console.debug(`Retrying request, attempt: ${attempts + 1}`);
+          console.debug(
+            `Retrying request on response status: ${response.status}`,
+            `Response: ${await response.text()}`,
+            `Attempt: ${attempts + 1}`,
+          );
           // eslint-disable-next-line max-len
           await new Promise((resolve) =>
             setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
           );
         } else {
           throw new MistralAPIError(
-            `HTTP error! status: ${response.status}`,
+            `HTTP error! status: ${response.status} ` +
+            `Response: \n${await response.text()}`,
           );
         }
       } catch (error) {
