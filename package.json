@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/mistralai/client-js"
   },
-  "types": "src/mistralai.d.ts",
+  "types": "src/client.d.ts",
   "dependencies": {
     "node-fetch": "^2.6.7"
   },
