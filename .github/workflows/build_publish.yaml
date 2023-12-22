@@ -37,12 +37,12 @@ jobs:
         # Eslint
       - name: ESlint check
         run: |
-          npm lint
+          npm run lint
 
         # Run tests
       - name: Run tests
         run: |
-          npm test
+          npm run test
 
   publish:
     needs: lint_and_test
