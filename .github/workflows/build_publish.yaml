@@ -18,6 +18,10 @@ jobs:
   lint_and_test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
     steps:
       # Checkout the repository
       - name: Checkout
@@ -27,7 +31,7 @@ jobs:
       - name: set node version
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
 
       # Install Build stuff
       - name: Install Dependencies
