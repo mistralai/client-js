@@ -1,5 +1,5 @@
 let isNode = false;
-if (typeof globalThis.fetch === 'undefined') {
+if (typeof window === 'undefined' || typeof globalThis.fetch !== 'undefined') {
   globalThis.fetch = (await import('node-fetch')).default;
   isNode = true;
 }
