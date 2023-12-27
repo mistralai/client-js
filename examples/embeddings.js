@@ -15,7 +15,6 @@ try {
     input: input,
   });
   console.log('Embeddings Batch:', embeddingsBatchResponse.data);
-
 } catch (error) {
   console.log(error);
 }

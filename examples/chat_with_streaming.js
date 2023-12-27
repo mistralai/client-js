@@ -7,7 +7,7 @@ const client = new MistralClient(apiKey);
 try {
   const chatStreamResponse = await client.chatStream({
     model: 'mistral-tiny',
-    messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+    messages: [{role: 'user', content: 'What is the best French cheese?'}],
   });
 
   console.log('Chat Stream:');
