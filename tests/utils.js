@@ -243,3 +243,14 @@ export function mockEmbeddingResponsePayload(batchSize = 1) {
     usage: {prompt_tokens: 90, total_tokens: 90, completion_tokens: 0},
   };
 }
+
+/**
+ * Mock embeddings request payload
+ * @return {Object}
+ */
+export function mockEmbeddingRequest() {
+  return {
+    model: 'mistral-embed',
+    input: 'embed'
+  };
+}

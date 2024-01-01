@@ -3,6 +3,7 @@ import {
   mockListModels,
   mockFetch,
   mockChatResponseStreamingPayload,
+  mockEmbeddingRequest,
   mockEmbeddingResponsePayload,
   mockChatResponsePayload,
   mockFetchStream,
@@ -65,7 +66,7 @@ describe('Mistral Client', () => {
       const mockResponse = mockEmbeddingResponsePayload();
       globalThis.fetch = mockFetch(200, mockResponse);
 
-      const response = await client.listModels();
+      const response = await client.embeddings(mockEmbeddingRequest);
       expect(response).toEqual(mockResponse);
     });
   });
@@ -76,7 +77,7 @@ describe('Mistral Client', () => {
       const mockResponse = mockEmbeddingResponsePayload(10);
       globalThis.fetch = mockFetch(200, mockResponse);
 
-      const response = await client.listModels();
+      const response = await client.embeddings(mockEmbeddingRequest);
       expect(response).toEqual(mockResponse);
     });
   });
