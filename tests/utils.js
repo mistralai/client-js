@@ -251,6 +251,6 @@ export function mockEmbeddingResponsePayload(batchSize = 1) {
 export function mockEmbeddingRequest() {
   return {
     model: 'mistral-embed',
-    input: 'embed'
+    input: 'embed',
   };
 }
