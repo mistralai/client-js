@@ -4,7 +4,6 @@ if (typeof window === 'undefined' || typeof globalThis.fetch !== 'undefined') {
   isNode = true;
 }
 
-
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
@@ -22,7 +21,7 @@ class MistralAPIError extends Error {
     super(message);
     this.name = 'MistralAPIError';
   }
-};
+}
 
 /**
  * MistralClient
@@ -55,9 +54,10 @@ class MistralClient {
    * @param {*} method
    * @param {*} path
    * @param {*} request
+   * @param {*} signal
    * @return {Promise<*>}
    */
-  _request = async function(method, path, request) {
+  _request = async function(method, path, request, signal) {
     const url = `${this.endpoint}/${path}`;
     const options = {
       method: method,
@@ -66,6 +66,7 @@ class MistralClient {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },
+      signal,
       body: method !== 'get' ? JSON.stringify(request) : null,
       timeout: this.timeout * 1000,
     };
@@ -109,12 +110,12 @@ class MistralClient {
           );
           // eslint-disable-next-line max-len
           await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+            setTimeout(resolve, Math.pow(2, attempts + 1) * 500),
           );
         } else {
           throw new MistralAPIError(
             `HTTP error! status: ${response.status} ` +
-            `Response: \n${await response.text()}`,
+              `Response: \n${await response.text()}`,
           );
         }
       } catch (error) {
@@ -125,7 +126,7 @@ class MistralClient {
         if (attempts === this.maxRetries - 1) throw error;
         // eslint-disable-next-line max-len
         await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+          setTimeout(resolve, Math.pow(2, attempts + 1) * 500),
         );
       }
     }
@@ -224,6 +225,7 @@ class MistralClient {
    * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
    * @param {*} randomSeed the random seed to use for sampling, e.g. 42
    * @param {*} safeMode whether to use safe mode, e.g. true
+   * @param {*} signal - for aborting
    * @return {Promise<Object>}
    */
   chatStream = async function* ({
@@ -234,6 +236,7 @@ class MistralClient {
     topP,
     randomSeed,
     safeMode,
+    signal,
   }) {
     const request = this._makeChatCompletionRequest(
       model,
@@ -249,6 +252,7 @@ class MistralClient {
       'post',
       'v1/chat/completions',
       request,
+      signal,
     );
 
     let buffer = '';
