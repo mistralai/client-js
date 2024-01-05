@@ -5,13 +5,11 @@ const apiKey = process.env.MISTRAL_API_KEY;
 const client = new MistralClient(apiKey);
 const log = console.log;
 
-const CHUNKS_BEFORE_ABORTING = 10;
-
 /**
  * @param {*} repro - json
  * @return {Promise<void>}
  */
-async function loop(repro) {
+async function loop(repro, seed, chunksBeforeAborting) {
   let attempt = 0;
   while (true) {
     attempt++;
@@ -19,13 +17,20 @@ async function loop(repro) {
     let num = 0;
 
     try {
-      const requestWithSignal = {...repro, signal: controller.signal};
-      for await (const chunk of client.chatStream(requestWithSignal)) {
+      const requestWithSignal = {
+        ...repro,
+        randomSeed: seed + attempt,
+        signal: controller.signal,
+      };
+      for await (const chunk of await client.chatStream(requestWithSignal)) {
         num++;
         log('attempt', attempt, 'chunk', num, JSON.stringify(chunk));
 
         // Adjust this number as per your requirement
-        if (num === CHUNKS_BEFORE_ABORTING) {
+        if (
+          num === chunksBeforeAborting &&
+          chunk.choices[0].finish_reason !== 'stop'
+        ) {
           controller.abort();
           log(
             'Early abort, likely to succeed, ' +
@@ -51,12 +56,16 @@ async function loop(repro) {
 
 async function main() {
   const reproJSONFile = process.argv[2];
-  if (!reproJSONFile) {
-    console.error('Pass path to repro request');
+  const seed = process.argv[3];
+  const numChunks = process.argv[4];
+  if (!reproJSONFile || !seed) {
+    console.error(
+      'show_stopper.js <path-to-repro> <seed-number> <chunks-before-aborting>',
+    );
     process.exit(1);
   } else {
     const repro = JSON.parse(fs.readFileSync(process.argv[2]).toString());
-    await loop(repro);
+    await loop(repro, Number(seed), Number(numChunks));
   }
 }
 

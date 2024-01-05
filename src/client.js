@@ -73,6 +73,8 @@ class MistralClient {
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
+        // TODO: remove
+        console.log('requesting', url, 'with', (options));
         const response = await fetch(url, options);
 
         if (response.ok) {
