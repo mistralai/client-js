@@ -7,11 +7,14 @@ const log = console.log;
 
 /**
  * @param {*} repro - json
+ * @param {*} seed
+ * @param {*} chunksBeforeAborting
  * @return {Promise<void>}
  */
 async function loop(repro, seed, chunksBeforeAborting) {
   let attempt = 0;
   while (true) {
+    const randomSeed = seed + attempt;
     attempt++;
     const controller = new AbortController();
     let num = 0;
@@ -19,7 +22,7 @@ async function loop(repro, seed, chunksBeforeAborting) {
     try {
       const requestWithSignal = {
         ...repro,
-        randomSeed: seed + attempt,
+        randomSeed: randomSeed,
         signal: controller.signal,
       };
       for await (const chunk of await client.chatStream(requestWithSignal)) {
