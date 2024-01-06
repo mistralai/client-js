@@ -4,6 +4,17 @@ if (typeof window === 'undefined' || typeof globalThis.fetch !== 'undefined') {
   isNode = true;
 }
 
+async function initializeFetch() {
+  if (typeof globalThis.fetch === 'undefined') {
+    const nodeFetch = await import('node-fetch');
+    fetch = nodeFetch.default;
+    isNode = true;
+  } else {
+    fetch = globalThis.fetch;
+  }
+}
+
+initializeFetch();
 
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
