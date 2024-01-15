@@ -76,7 +76,7 @@ class MistralClient {
       method: method,
       headers: {
         'User-Agent': `mistral-client-js/${VERSION}`,
-        'Accept': 'application/json',
+        'Accept': request.stream ? 'text/event-stream' : 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },
@@ -97,14 +97,13 @@ class MistralClient {
               // Chrome does not support async iterators yet, so polyfill it
               const asyncIterator = async function* () {
                 try {
-                  const decoder = new TextDecoder();
                   while (true) {
                     // Read from the stream
                     const {done, value} = await reader.read();
                     // Exit if we're done
                     if (done) return;
                     // Else yield the chunk
-                    yield decoder.decode(value, {stream: true});
+                    yield value;
                   }
                 } finally {
                   reader.releaseLock();
@@ -274,9 +273,9 @@ class MistralClient {
     );
 
     let buffer = '';
-
+    const decoder = new TextDecoder();
     for await (const chunk of response) {
-      buffer += chunk;
+      buffer += decoder.decode(chunk, {stream: true});
       let firstNewline;
       while ((firstNewline = buffer.indexOf('\n')) !== -1) {
         const chunkLine = buffer.substring(0, firstNewline);
