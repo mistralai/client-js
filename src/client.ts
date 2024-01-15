@@ -35,6 +35,25 @@ export class MistralClient {
     this.config = { endpoint, maxRetries, timeout };
   }
 
+  private v1 = {
+    chat: {
+      create: async (params: CreateChat) =>
+        this._request("/v1/chat/completions", "POST", params),
+      stream: async (params: Omit<CreateChat, "stream">) =>
+        this._request("/v1/chat/completions", "POST", {
+          ...params,
+          stream: true,
+        }),
+    },
+    embeddings: {
+      create: async (params: CreateEmbedding) =>
+        this._request("/v1/embeddings", "POST", params),
+    },
+    models: {
+      list: async () => this._request("/v1/models", "GET"),
+    },
+  };
+
   public _request = async (path: string, method: HTTPMethod, params?: {}) => {
     for (let attempts = 0; attempts < this.config.maxRetries; attempts++) {
       const res = await this.makeFetchRequest(path, method, params);
@@ -125,10 +144,32 @@ type HTTPMethod =
   | "PUT"
   | "TRACE";
 
+export interface CreateChat {
+  model: string;
+  messages: MistralMessage[];
+
+  max_tokens?: number;
+  random_seed?: boolean;
+  safe_prompt?: boolean;
+  stream?: boolean;
+  temperature?: number;
+  top_p?: number;
+}
+
+export interface CreateEmbedding {
+  model: string;
+  input: string[];
+}
+
 interface MistralClientConfig {
   endpoint: string;
   maxRetries: number;
   timeout: number;
+}
+
+export interface MistralMessage {
+  role: "user" | "system";
+  content: string;
 }
 
 /****************************************************
