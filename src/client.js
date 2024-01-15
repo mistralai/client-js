@@ -1,6 +1,8 @@
-import {version} from '../package.json';
-
 let isNode = false;
+
+const VERSION = '0.0.3';
+const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
+const ENDPOINT = 'https://api.mistral.ai';
 
 /**
  * Initialize fetch
@@ -18,9 +20,6 @@ async function initializeFetch() {
 }
 
 initializeFetch();
-
-const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
-const ENDPOINT = 'https://api.mistral.ai';
 
 /**
  * MistralAPIError
@@ -76,7 +75,7 @@ class MistralClient {
     const options = {
       method: method,
       headers: {
-        'User-Agent': `mistral-client-js/${version}`,
+        'User-Agent': `mistral-client-js/${VERSION}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
