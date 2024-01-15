@@ -1,11 +1,12 @@
 let isNode = false;
-if (typeof window === 'undefined' || typeof globalThis.fetch !== 'undefined') {
-  globalThis.fetch = (await import('node-fetch')).default;
-  isNode = true;
-}
 
+/**
+ * Initialize fetch
+ * @return {Promise<void>}
+ */
 async function initializeFetch() {
-  if (typeof globalThis.fetch === 'undefined') {
+  if (typeof window === 'undefined' ||
+    typeof globalThis.fetch === 'undefined') {
     const nodeFetch = await import('node-fetch');
     fetch = nodeFetch.default;
     isNode = true;
