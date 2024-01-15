@@ -32,6 +32,36 @@ export class MistralClient {
     this.apiKey = apiKey ?? (process.env.MISTRAL_API_KEY as string);
     this.config = { endpoint, maxRetries, timeout };
   }
+
+  public executeRequest = async (
+    path: string,
+    method: HTTPMethod,
+    params?: {}
+  ) => {
+    for (let attempts = 0; attempts < this.config.maxRetries; attempts++) {
+      const res = await this.makeFetchRequest(path, method, params);
+    }
+  };
+
+  private makeFetchRequest = async (
+    path: string,
+    method: HTTPMethod,
+    params?: {}
+  ) => {
+    const url = `${this.config.endpoint}/${path}`;
+    const options = {
+      body: JSON.stringify(params),
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      method,
+      timeout: this.config.timeout * 1000,
+    };
+
+    return fetch(url, options);
+  };
 }
 
 /**
@@ -57,6 +87,17 @@ export class MistralClientError extends Error {
 /****************************************************
  Entities
 ****************************************************/
+type HTTPMethod =
+  | "CONNECT"
+  | "DELETE"
+  | "GET"
+  | "HEAD"
+  | "OPTIONS"
+  | "PATCH"
+  | "POST"
+  | "PUT"
+  | "TRACE";
+
 interface MistralClientConfig {
   endpoint: string;
   maxRetries: number;

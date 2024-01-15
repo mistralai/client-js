@@ -11,19 +11,6 @@ class MistralClient {
    * @return {Promise<*>}
    */
   _request = async function (method, path, request) {
-    const url = `${this.endpoint}/${path}`;
-    const options = {
-      method: method,
-      headers: {
-        "User-Agent": `mistral-client-js/${VERSION}`,
-        Accept: request?.stream ? "text/event-stream" : "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: method !== "get" ? JSON.stringify(request) : null,
-      timeout: this.timeout * 1000,
-    };
-
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
         const response = await fetch(url, options);
