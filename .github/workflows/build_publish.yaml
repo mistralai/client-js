@@ -69,6 +69,7 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
           npm version ${{ github.ref_name }}
+          sed -i '' -e 's/VERSION = '\''0.0.1'\''/VERSION = '\''${{ github.ref_name }}'\''/g' src/client.js
           npm publish 
 
       
