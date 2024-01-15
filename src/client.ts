@@ -1,5 +1,7 @@
 import fetch from "isomorphic-fetch";
 
+const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
+
 /**
  * Client for interacting with the Mistral API
  *
@@ -46,7 +48,30 @@ export class MistralClient {
         if (isStreamableType(params) && params?.stream)
           return handleStreamResponse(res);
         else return res.json();
+
+      // response has retry-able error code
+      if (RETRY_STATUS_CODES.includes(res.status)) {
+        console.warn(
+          `Retrying request on response status: ${res.status}`,
+          `Response: ${await res.text()}`,
+          `Attempt: ${attempts + 1}`
+        );
+
+        // exponential backoff
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.pow(2, attempts + 1) * 500)
+        );
+
+        continue;
+      }
+
+      throw new MistralClientError(
+        `Unexpected error. Status ${res.status}.\
+             Message: ${await res.text()}`
+      );
     }
+
+    throw new MistralClientError("Max retries reached");
   };
 
   private makeFetchRequest = async (

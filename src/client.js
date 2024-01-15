@@ -1,49 +1,7 @@
 const VERSION = "0.0.3";
-const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = "https://api.mistral.ai";
 
 class MistralClient {
-  /**
-   *
-   * @param {*} method
-   * @param {*} path
-   * @param {*} request
-   * @return {Promise<*>}
-   */
-  _request = async function (method, path, request) {
-    for (let attempts = 0; attempts < this.maxRetries; attempts++) {
-      try {
-        if (RETRY_STATUS_CODES.includes(response.status)) {
-          console.debug(
-            `Retrying request on response status: ${response.status}`,
-            `Response: ${await response.text()}`,
-            `Attempt: ${attempts + 1}`
-          );
-          // eslint-disable-next-line max-len
-          await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, attempts + 1) * 500)
-          );
-        } else {
-          throw new MistralAPIError(
-            `HTTP error! status: ${response.status} ` +
-              `Response: \n${await response.text()}`
-          );
-        }
-      } catch (error) {
-        console.error(`Request failed: ${error.message}`);
-        if (error.name === "MistralAPIError") {
-          throw error;
-        }
-        if (attempts === this.maxRetries - 1) throw error;
-        // eslint-disable-next-line max-len
-        await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, attempts + 1) * 500)
-        );
-      }
-    }
-    throw new Error("Max retries reached");
-  };
-
   /**
    * Creates a chat completion request
    * @param {*} model
