@@ -186,6 +186,7 @@ export class MistralClientError extends Error {
     Object.setPrototypeOf(this, MistralClientError.prototype);
   }
 }
+export default MistralClient;
 
 /****************************************************
  Entities
