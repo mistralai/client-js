@@ -59,9 +59,52 @@ export class MistralClient {
     },
   };
 
+  /**
+   * Creates a chat session with the specified model and messages.
+   *
+   * @param {CreateChat} params The parameters for creating a chat.
+   * @param {string} params.model The name of the model to chat with, e.g., 'mistral-tiny'.
+   * @param {MistralMessage[]} params.messages An array of messages for the chat session.
+   * @param {number} [params.max_tokens] The maximum number of tokens to generate, e.g., 100.
+   * @param {number} [params.temperature] The temperature to use for sampling, e.g., 0.5.
+   * @param {number} [params.top_p] The cumulative probability of tokens to generate, e.g., 0.9.
+   * @param {boolean} [params.random_seed] The random seed to use for sampling, e.g., 42.
+   * @param {boolean} [params.safe_prompt] Whether to use safe mode.
+   * @param {boolean} [params.stream] Whether the chat is a stream. Deprecated, use `stream` method instead.
+   * @return {Promise<ChatCompletionResponse>} A promise that resolves to the chat completion response.
+   */
   chat = this.v1.chat.create;
+
+  /**
+   * Creates embeddings for a given input or batch of inputs using the specified embedding model.
+   *
+   * @param {CreateEmbedding} params Parameters for creating embeddings.
+   * @param {string} params.model The embedding model to use, e.g., 'mistral-embed'.
+   * @param {string[]} params.input An array of inputs to embed, e.g., ['What is the best French cheese?'].
+   * @return {Promise<EmbeddingResponse>} A promise that resolves to the embedding response, containing the embeddings and related information.
+   */
   embeddings = this.v1.embeddings.create;
+
+  /**
+   * Retrieves a list of available models.
+   *
+   * @return {Promise<ListModelsResponse>} A promise that resolves to a response containing a list of models.
+   */
   listModels = this.v1.models.list;
+
+  /**
+   * Creates a streaming chat session with the specified model and messages.
+   *
+   * @param {CreateChat} params The parameters for creating a chat.
+   * @param {string} params.model The name of the model to chat with, e.g., 'mistral-tiny'.
+   * @param {MistralMessage[]} params.messages An array of messages for the chat session.
+   * @param {number} [params.max_tokens] The maximum number of tokens to generate, e.g., 100.
+   * @param {number} [params.temperature] The temperature to use for sampling, e.g., 0.5.
+   * @param {number} [params.top_p] The cumulative probability of tokens to generate, e.g., 0.9.
+   * @param {boolean} [params.random_seed] The random seed to use for sampling, e.g., 42.
+   * @param {boolean} [params.safe_prompt] Whether to use safe mode.
+   * @return {Promise<ChatCompletionResponse>} A promise that resolves to the chat completion response.
+   */
   streamChat = this.v1.chat.stream;
 
   public _request = async <T = any>(
