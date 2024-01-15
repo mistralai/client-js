@@ -4,7 +4,8 @@
     "description": "",
     "type": "module",
     "dependencies": {
-      "@mistralai/mistralai": "file:../"
+        "@mistralai/mistralai": "file:../",
+        "dotenv": "^16.3.1"
     },
     "keywords": []
-  }
+}
