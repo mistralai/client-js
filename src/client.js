@@ -2,10 +2,6 @@ const VERSION = "0.0.3";
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = "https://api.mistral.ai";
 
-/**
- * MistralClient
- * @return {MistralClient}
- */
 class MistralClient {
   /**
    * A simple and lightweight client for the Mistral API

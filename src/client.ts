@@ -1,6 +1,13 @@
 import fetch from "isomorphic-fetch";
 
 /**
+ * Client for interacting with the Mistral API
+ *
+ * @class
+ */
+export class MistralClient {}
+
+/**
  * Represents an error specific to the Mistral API.
  *
  * @extends Error
@@ -19,3 +26,7 @@ export class MistralClientError extends Error {
     Object.setPrototypeOf(this, MistralClientError.prototype);
   }
 }
+
+/****************************************************
+ Entities
+****************************************************/
