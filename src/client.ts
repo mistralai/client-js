@@ -7,7 +7,7 @@ const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
  *
  * @class
  */
-export class MistralClient {
+class MistralClient {
   private apiKey: string;
   private config: MistralClientConfig;
 
