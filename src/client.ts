@@ -166,13 +166,14 @@ class MistralClient {
     return fetch(url, options);
   };
 }
+export default MistralClient;
 
 /**
  * Represents an error specific to the Mistral API.
  *
  * @extends Error
  */
-export class MistralClientError extends Error {
+class MistralClientError extends Error {
   public name = "MistralClientError";
 
   /**
@@ -186,7 +187,6 @@ export class MistralClientError extends Error {
     Object.setPrototypeOf(this, MistralClientError.prototype);
   }
 }
-export default MistralClient;
 
 /****************************************************
  Entities
