@@ -13,8 +13,11 @@ const chatStreamResponse = await client.chatStream({
 
 console.log("Chat Stream:");
 for await (const chunk of chatStreamResponse) {
-  if (chunk.choices[0].delta.content !== undefined) {
-    const streamText = chunk.choices[0].delta.content;
+  const jsonPart = chunk.split("data: ")[1].trim();
+  const parsedData = JSON.parse(jsonPart);
+
+  if (parsedData?.choices?.[0]?.delta?.content) {
+    const streamText = parsedData.choices[0].delta.content;
     process.stdout.write(streamText);
   }
 }
