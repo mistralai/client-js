@@ -1,6 +1,3 @@
-const VERSION = "0.0.3";
-const ENDPOINT = "https://api.mistral.ai";
-
 class MistralClient {
   /**
    * Creates a chat completion request
