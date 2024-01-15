@@ -62,6 +62,7 @@ export class MistralClient {
   chat = this.v1.chat.create;
   embeddings = this.v1.embeddings.create;
   listModels = this.v1.models.list;
+  streamChat = this.v1.chat.stream;
 
   public _request = async <T = any>(
     path: string,
