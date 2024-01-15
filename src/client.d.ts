@@ -101,7 +101,11 @@ declare module '@mistralai/mistralai' {
             topP?: number,
             randomSeed?: number,
             stream?: boolean,
-            safeMode?: boolean
+            /**
+             * @deprecated use safePrompt instead
+             */
+            safeMode?: boolean,
+            safePrompt?: boolean
         ): object;
 
         listModels(): Promise<ListModelsResponse>;
@@ -113,7 +117,11 @@ declare module '@mistralai/mistralai' {
             maxTokens?: number;
             topP?: number;
             randomSeed?: number;
+            /**
+             * @deprecated use safePrompt instead
+             */
             safeMode?: boolean;
+            safePrompt?: boolean;
         }): Promise<ChatCompletionResponse>;
 
         chatStream(options: {
@@ -123,7 +131,11 @@ declare module '@mistralai/mistralai' {
             maxTokens?: number;
             topP?: number;
             randomSeed?: number;
+            /**
+             * @deprecated use safePrompt instead
+             */
             safeMode?: boolean;
+            safePrompt?: boolean;
         }): AsyncGenerator<ChatCompletionResponseChunk, void, unknown>;
 
         embeddings(options: {
