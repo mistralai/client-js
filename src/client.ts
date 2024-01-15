@@ -38,19 +38,24 @@ export class MistralClient {
   private v1 = {
     chat: {
       create: async (params: CreateChat) =>
-        this._request("/v1/chat/completions", "POST", params),
+        // @TODO: typing needs to be updated for stream vs json
+        this._request<ChatCompletionResponse>(
+          "/v1/chat/completions",
+          "POST",
+          params
+        ),
       stream: async (params: Omit<CreateChat, "stream">) =>
-        this._request("/v1/chat/completions", "POST", {
+        this._request<ChatCompletionResponse>("/v1/chat/completions", "POST", {
           ...params,
           stream: true,
         }),
     },
     embeddings: {
       create: async (params: CreateEmbedding) =>
-        this._request("/v1/embeddings", "POST", params),
+        this._request<EmbeddingResponse>("/v1/embeddings", "POST", params),
     },
     models: {
-      list: async () => this._request("/v1/models", "GET"),
+      list: async () => this._request<ListModelsResponse>("/v1/models", "GET"),
     },
   };
 
@@ -58,15 +63,19 @@ export class MistralClient {
   embeddings = this.v1.embeddings.create;
   listModels = this.v1.models.list;
 
-  public _request = async (path: string, method: HTTPMethod, params?: {}) => {
+  public _request = async <T = any>(
+    path: string,
+    method: HTTPMethod,
+    params?: {}
+  ): Promise<T> => {
     for (let attempts = 0; attempts < this.config.maxRetries; attempts++) {
       const res = await this.makeFetchRequest(path, method, params);
 
       // response is ok always returns
       if (res.ok)
         if (isStreamableType(params) && params?.stream)
-          return handleStreamResponse(res);
-        else return res.json();
+          return handleStreamResponse(res) as unknown as T;
+        else return res.json() as Promise<T>;
 
       // response has retry-able error code
       if (RETRY_STATUS_CODES.includes(res.status)) {
