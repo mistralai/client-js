@@ -9,9 +9,18 @@
     "type": "git",
     "url": "https://github.com/mistralai/client-js"
   },
-  "main": "src/client.js",
-  "types": "src/client.d.ts",
+  "source": "src/client.ts",
+  "main": "dist/client.cjs",
+  "module": "dist/client.module.js",
+  "unpkg": "dist/client.umd.js",
+  "types": "dist/client.d.ts",
+  "exports": {
+    "default": "./dist/client.module.js",
+    "import": "./dist/client.module.js",
+    "require": "./dist/client.cjs.js"
+  },
   "scripts": {
+    "build": "microbundle",
     "lint": "./node_modules/.bin/eslint .",
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
@@ -27,6 +36,7 @@
     "eslint": "^8.55.0",
     "eslint-config-google": "^0.14.0",
     "jest": "^29.7.0",
+    "microbundle": "^0.15.1",
     "prettier": "2.8.8",
     "typescript": "^5.3.3"
   }
