@@ -303,6 +303,8 @@ export interface ModelPermission {
   is_blocking: boolean;
 }
 
+type StreamableParameters = CreateChat;
+
 export interface TokenUsage {
   prompt_tokens: number;
   completion_tokens: number;
@@ -331,6 +333,6 @@ async function* handleStreamResponse(response: Response) {
   }
 }
 
-function isStreamableType(params: any): params is { stream: true } {
+function isStreamableType(params: any): params is StreamableParameters {
   return params !== undefined && "stream" in params;
 }
