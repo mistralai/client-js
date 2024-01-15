@@ -40,22 +40,22 @@ class MistralClient {
       create: async (params: CreateChat) =>
         // @TODO: typing needs to be updated for stream vs json
         this._request<ChatCompletionResponse>(
-          "/v1/chat/completions",
+          "v1/chat/completions",
           "POST",
           params
         ),
       stream: async (params: Omit<CreateChat, "stream">) =>
-        this._request<ChatCompletionResponse>("/v1/chat/completions", "POST", {
+        this._request<ChatCompletionResponse>("v1/chat/completions", "POST", {
           ...params,
           stream: true,
         }),
     },
     embeddings: {
       create: async (params: CreateEmbedding) =>
-        this._request<EmbeddingResponse>("/v1/embeddings", "POST", params),
+        this._request<EmbeddingResponse>("v1/embeddings", "POST", params),
     },
     models: {
-      list: async () => this._request<ListModelsResponse>("/v1/models", "GET"),
+      list: async () => this._request<ListModelsResponse>("v1/models", "GET"),
     },
   };
 
@@ -315,7 +315,7 @@ export interface TokenUsage {
  Utilities
 ****************************************************/
 async function* handleStreamResponse(response: Response) {
-  const reader = response.body?.getReader();
+  const reader = response?.body?.getReader();
   if (!reader)
     throw new MistralClientError(
       "Unknown error occured and MistralClient was unable to establish stream"
