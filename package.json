@@ -30,9 +30,10 @@
     ]
   },
   "dependencies": {
-    "node-fetch": "^2.6.7"
+    "isomorphic-fetch": "^3.0.0"
   },
   "devDependencies": {
+    "@types/isomorphic-fetch": "^0.0.39",
     "eslint": "^8.55.0",
     "eslint-config-google": "^0.14.0",
     "jest": "^29.7.0",

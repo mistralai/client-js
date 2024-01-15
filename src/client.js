@@ -1,25 +1,6 @@
-let isNode = false;
-
-const VERSION = '0.0.3';
+const VERSION = "0.0.3";
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
-const ENDPOINT = 'https://api.mistral.ai';
-
-/**
- * Initialize fetch
- * @return {Promise<void>}
- */
-async function initializeFetch() {
-  if (typeof window === 'undefined' ||
-    typeof globalThis.fetch === 'undefined') {
-    const nodeFetch = await import('node-fetch');
-    fetch = nodeFetch.default;
-    isNode = true;
-  } else {
-    fetch = globalThis.fetch;
-  }
-}
-
-initializeFetch();
+const ENDPOINT = "https://api.mistral.ai";
 
 /**
  * MistralAPIError
@@ -33,9 +14,9 @@ class MistralAPIError extends Error {
    */
   constructor(message) {
     super(message);
-    this.name = 'MistralAPIError';
+    this.name = "MistralAPIError";
   }
-};
+}
 
 /**
  * MistralClient
@@ -54,7 +35,7 @@ class MistralClient {
     apiKey = process.env.MISTRAL_API_KEY,
     endpoint = ENDPOINT,
     maxRetries = 5,
-    timeout = 120,
+    timeout = 120
   ) {
     this.endpoint = endpoint;
     this.apiKey = apiKey;
@@ -70,17 +51,17 @@ class MistralClient {
    * @param {*} request
    * @return {Promise<*>}
    */
-  _request = async function(method, path, request) {
+  _request = async function (method, path, request) {
     const url = `${this.endpoint}/${path}`;
     const options = {
       method: method,
       headers: {
-        'User-Agent': `mistral-client-js/${VERSION}`,
-        'Accept': request?.stream ? 'text/event-stream' : 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        "User-Agent": `mistral-client-js/${VERSION}`,
+        Accept: request?.stream ? "text/event-stream" : "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
       },
-      body: method !== 'get' ? JSON.stringify(request) : null,
+      body: method !== "get" ? JSON.stringify(request) : null,
       timeout: this.timeout * 1000,
     };
 
@@ -99,7 +80,7 @@ class MistralClient {
                 try {
                   while (true) {
                     // Read from the stream
-                    const {done, value} = await reader.read();
+                    const { done, value } = await reader.read();
                     // Exit if we're done
                     if (done) return;
                     // Else yield the chunk
@@ -118,31 +99,31 @@ class MistralClient {
           console.debug(
             `Retrying request on response status: ${response.status}`,
             `Response: ${await response.text()}`,
-            `Attempt: ${attempts + 1}`,
+            `Attempt: ${attempts + 1}`
           );
           // eslint-disable-next-line max-len
           await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+            setTimeout(resolve, Math.pow(2, attempts + 1) * 500)
           );
         } else {
           throw new MistralAPIError(
             `HTTP error! status: ${response.status} ` +
-            `Response: \n${await response.text()}`,
+              `Response: \n${await response.text()}`
           );
         }
       } catch (error) {
         console.error(`Request failed: ${error.message}`);
-        if (error.name === 'MistralAPIError') {
+        if (error.name === "MistralAPIError") {
           throw error;
         }
         if (attempts === this.maxRetries - 1) throw error;
         // eslint-disable-next-line max-len
         await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+          setTimeout(resolve, Math.pow(2, attempts + 1) * 500)
         );
       }
     }
-    throw new Error('Max retries reached');
+    throw new Error("Max retries reached");
   };
 
   /**
@@ -158,7 +139,7 @@ class MistralClient {
    * @param {*} safePrompt
    * @return {Promise<Object>}
    */
-  _makeChatCompletionRequest = function(
+  _makeChatCompletionRequest = function (
     model,
     messages,
     temperature,
@@ -167,7 +148,7 @@ class MistralClient {
     randomSeed,
     stream,
     safeMode,
-    safePrompt,
+    safePrompt
   ) {
     return {
       model: model,
@@ -185,8 +166,8 @@ class MistralClient {
    * Returns a list of the available models
    * @return {Promise<Object>}
    */
-  listModels = async function() {
-    const response = await this._request('get', 'v1/models');
+  listModels = async function () {
+    const response = await this._request("get", "v1/models");
     return response;
   };
 
@@ -203,7 +184,7 @@ class MistralClient {
    * @param {*} safePrompt whether to use safe mode, e.g. true
    * @return {Promise<Object>}
    */
-  chat = async function({
+  chat = async function ({
     model,
     messages,
     temperature,
@@ -222,12 +203,12 @@ class MistralClient {
       randomSeed,
       false,
       safeMode,
-      safePrompt,
+      safePrompt
     );
     const response = await this._request(
-      'post',
-      'v1/chat/completions',
-      request,
+      "post",
+      "v1/chat/completions",
+      request
     );
     return response;
   };
@@ -264,25 +245,25 @@ class MistralClient {
       randomSeed,
       true,
       safeMode,
-      safePrompt,
+      safePrompt
     );
     const response = await this._request(
-      'post',
-      'v1/chat/completions',
-      request,
+      "post",
+      "v1/chat/completions",
+      request
     );
 
-    let buffer = '';
+    let buffer = "";
     const decoder = new TextDecoder();
     for await (const chunk of response) {
-      buffer += decoder.decode(chunk, {stream: true});
+      buffer += decoder.decode(chunk, { stream: true });
       let firstNewline;
-      while ((firstNewline = buffer.indexOf('\n')) !== -1) {
+      while ((firstNewline = buffer.indexOf("\n")) !== -1) {
         const chunkLine = buffer.substring(0, firstNewline);
         buffer = buffer.substring(firstNewline + 1);
-        if (chunkLine.startsWith('data:')) {
+        if (chunkLine.startsWith("data:")) {
           const json = chunkLine.substring(6).trim();
-          if (json !== '[DONE]') {
+          if (json !== "[DONE]") {
             yield JSON.parse(json);
           }
         }
@@ -298,12 +279,12 @@ class MistralClient {
    * e.g. ['What is the best French cheese?']
    * @return {Promise<Object>}
    */
-  embeddings = async function({model, input}) {
+  embeddings = async function ({ model, input }) {
     const request = {
       model: model,
       input: input,
     };
-    const response = await this._request('post', 'v1/embeddings', request);
+    const response = await this._request("post", "v1/embeddings", request);
     return response;
   };
 }
