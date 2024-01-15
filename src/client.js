@@ -76,7 +76,7 @@ class MistralClient {
       method: method,
       headers: {
         'User-Agent': `mistral-client-js/${VERSION}`,
-        'Accept': request.stream ? 'text/event-stream' : 'application/json',
+        'Accept': request?.stream ? 'text/event-stream' : 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },

@@ -182,8 +182,9 @@ export function mockChatResponsePayload() {
  * @return {Object}
  */
 export function mockChatResponseStreamingPayload() {
+  const encoder = new TextEncoder();
   const firstMessage =
-    ['data: ' +
+    [encoder.encode('data: ' +
     JSON.stringify({
       id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
       model: 'mistral-small',
@@ -195,12 +196,12 @@ export function mockChatResponseStreamingPayload() {
         },
       ],
     }) +
-    '\n\n'];
-  const lastMessage = ['data: [DONE]\n\n'];
+    '\n\n')];
+  const lastMessage = [encoder.encode('data: [DONE]\n\n')];
 
   const dataMessages = [];
   for (let i = 0; i < 10; i++) {
-    dataMessages.push(
+    dataMessages.push(encoder.encode(
       'data: ' +
         JSON.stringify({
           id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
@@ -215,7 +216,7 @@ export function mockChatResponseStreamingPayload() {
             },
           ],
         }) +
-        '\n\n',
+        '\n\n'),
     );
   }
 
