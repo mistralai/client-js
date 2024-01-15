@@ -345,8 +345,9 @@ async function* handleStreamResponse(response: Response) {
   if (response.body instanceof ReadableStream) {
     const asyncIterator = convertReadableStreamToAsyncIterable(response.body);
 
+    const textDecoder = new TextDecoder();
     for await (const chunk of asyncIterator) {
-      yield new TextDecoder().decode(chunk, { stream: true });
+      yield textDecoder.decode(chunk, { stream: true });
     }
   } else if (typeof (response.body as any).on === "function") {
     // handle as nodejs stream
