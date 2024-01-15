@@ -1,3 +1,5 @@
+import {version} from '../package.json';
+
 let isNode = false;
 
 /**
@@ -74,6 +76,7 @@ class MistralClient {
     const options = {
       method: method,
       headers: {
+        'User-Agent': `mistral-client-js/${version}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
