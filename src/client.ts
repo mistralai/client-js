@@ -314,23 +314,49 @@ export interface TokenUsage {
 /****************************************************
  Utilities
 ****************************************************/
-async function* handleStreamResponse(response: Response) {
-  const reader = response?.body?.getReader();
-  if (!reader)
-    throw new MistralClientError(
-      "Unknown error occured and MistralClient was unable to establish stream"
-    );
-  const decoder = new TextDecoder();
-
+async function* convertReadableStreamToAsyncIterable(
+  stream: ReadableStream<Uint8Array>
+) {
+  const reader = stream.getReader();
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      yield decoder.decode(value, { stream: true });
+      yield value;
     }
   } finally {
     reader.releaseLock();
   }
+}
+
+async function* handleStreamResponse(response: Response) {
+  if (!response.body)
+    throw new MistralClientError(
+      "Unknown error: response.body for stream is undefined or null"
+    );
+
+  // fetch versions handle streams differently and standardizing the fetch
+  // version is challenging due to the glorious practice of global polyfilling.
+  //
+  // ReadableStream is used in most browsers and the latest node-fetch versions.
+  // NodeJSStream is used in older Node.js versions and some isomorphic-fetch versions.
+  //
+  // The following conditional handling resolves these discrepancies.
+  if (response.body instanceof ReadableStream) {
+    const asyncIterator = convertReadableStreamToAsyncIterable(response.body);
+
+    for await (const chunk of asyncIterator) {
+      yield new TextDecoder().decode(chunk, { stream: true });
+    }
+  } else if (typeof (response.body as any).on === "function") {
+    // handle as nodejs stream
+    for await (const chunk of response.body as any as NodeJS.ReadableStream) {
+      yield chunk.toString();
+    }
+  } else
+    throw new Error(
+      "Unknown response body type or streaming method not supported."
+    );
 }
 
 function isStreamableType(params: any): params is StreamableParameters {
