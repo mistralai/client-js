@@ -35,11 +35,7 @@ export class MistralClient {
     this.config = { endpoint, maxRetries, timeout };
   }
 
-  public executeRequest = async (
-    path: string,
-    method: HTTPMethod,
-    params?: {}
-  ) => {
+  public _request = async (path: string, method: HTTPMethod, params?: {}) => {
     for (let attempts = 0; attempts < this.config.maxRetries; attempts++) {
       const res = await this.makeFetchRequest(path, method, params);
 
