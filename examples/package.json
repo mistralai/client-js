@@ -1,11 +1,11 @@
 {
-    "name": "mistralai client examples",
-    "version": "1.0.0",
-    "description": "",
-    "type": "module",
-    "dependencies": {
-        "@mistralai/mistralai": "file:../",
-        "dotenv": "^16.3.1"
-    },
-    "keywords": []
+  "name": "mistralai-client-examples",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "@mistralai/mistralai": "file:../",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": []
 }
