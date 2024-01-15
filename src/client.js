@@ -3,22 +3,6 @@ const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = "https://api.mistral.ai";
 
 /**
- * MistralAPIError
- * @return {MistralAPIError}
- * @extends {Error}
- */
-class MistralAPIError extends Error {
-  /**
-   * A simple error class for Mistral API errors
-   * @param {*} message
-   */
-  constructor(message) {
-    super(message);
-    this.name = "MistralAPIError";
-  }
-}
-
-/**
  * MistralClient
  * @return {MistralClient}
  */
