@@ -153,7 +153,8 @@ class MistralClient {
    * @param {*} topP
    * @param {*} randomSeed
    * @param {*} stream
-   * @param {*} safeMode
+   * @param {*} safeMode deprecated use safePrompt instead
+   * @param {*} safePrompt
    * @return {Promise<Object>}
    */
   _makeChatCompletionRequest = function(
@@ -165,6 +166,7 @@ class MistralClient {
     randomSeed,
     stream,
     safeMode,
+    safePrompt,
   ) {
     return {
       model: model,
@@ -174,7 +176,7 @@ class MistralClient {
       top_p: topP ?? undefined,
       random_seed: randomSeed ?? undefined,
       stream: stream ?? undefined,
-      safe_prompt: safeMode ?? undefined,
+      safe_prompt: (safeMode || safePrompt) ?? undefined,
     };
   };
 
@@ -196,7 +198,8 @@ class MistralClient {
    * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
    * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
    * @param {*} randomSeed the random seed to use for sampling, e.g. 42
-   * @param {*} safeMode whether to use safe mode, e.g. true
+   * @param {*} safeMode deprecated use safePrompt instead
+   * @param {*} safePrompt whether to use safe mode, e.g. true
    * @return {Promise<Object>}
    */
   chat = async function({
@@ -207,6 +210,7 @@ class MistralClient {
     topP,
     randomSeed,
     safeMode,
+    safePrompt,
   }) {
     const request = this._makeChatCompletionRequest(
       model,
@@ -217,6 +221,7 @@ class MistralClient {
       randomSeed,
       false,
       safeMode,
+      safePrompt,
     );
     const response = await this._request(
       'post',
@@ -235,7 +240,8 @@ class MistralClient {
    * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
    * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
    * @param {*} randomSeed the random seed to use for sampling, e.g. 42
-   * @param {*} safeMode whether to use safe mode, e.g. true
+   * @param {*} safeMode deprecated use safePrompt instead
+   * @param {*} safePrompt whether to use safe mode, e.g. true
    * @return {Promise<Object>}
    */
   chatStream = async function* ({
@@ -246,6 +252,7 @@ class MistralClient {
     topP,
     randomSeed,
     safeMode,
+    safePrompt,
   }) {
     const request = this._makeChatCompletionRequest(
       model,
@@ -256,6 +263,7 @@ class MistralClient {
       randomSeed,
       true,
       safeMode,
+      safePrompt,
     );
     const response = await this._request(
       'post',

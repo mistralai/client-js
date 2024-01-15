@@ -33,6 +33,42 @@ describe('Mistral Client', () => {
       });
       expect(response).toEqual(mockResponse);
     });
+
+    it('should return a chat response object if safeMode is set', async() => {
+      // Mock the fetch function
+      const mockResponse = mockChatResponsePayload();
+      globalThis.fetch = mockFetch(200, mockResponse);
+
+      const response = await client.chat({
+        model: 'mistral-small',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
+        safeMode: true,
+      });
+      expect(response).toEqual(mockResponse);
+    });
+
+    it('should return a chat response object if safePrompt is set', async() => {
+      // Mock the fetch function
+      const mockResponse = mockChatResponsePayload();
+      globalThis.fetch = mockFetch(200, mockResponse);
+
+      const response = await client.chat({
+        model: 'mistral-small',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
+        safePrompt: true,
+      });
+      expect(response).toEqual(mockResponse);
+    });
   });
 
   describe('chatStream()', () => {
@@ -49,6 +85,54 @@ describe('Mistral Client', () => {
             content: 'What is the best French cheese?',
           },
         ],
+      });
+
+      const parsedResponse = [];
+      for await (const r of response) {
+        parsedResponse.push(r);
+      }
+
+      expect(parsedResponse.length).toEqual(11);
+    });
+
+    it('should return parsed, streamed response with safeMode', async() => {
+      // Mock the fetch function
+      const mockResponse = mockChatResponseStreamingPayload();
+      globalThis.fetch = mockFetchStream(200, mockResponse);
+
+      const response = await client.chatStream({
+        model: 'mistral-small',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
+        safeMode: true,
+      });
+
+      const parsedResponse = [];
+      for await (const r of response) {
+        parsedResponse.push(r);
+      }
+
+      expect(parsedResponse.length).toEqual(11);
+    });
+
+    it('should return parsed, streamed response with safePrompt', async() => {
+      // Mock the fetch function
+      const mockResponse = mockChatResponseStreamingPayload();
+      globalThis.fetch = mockFetchStream(200, mockResponse);
+
+      const response = await client.chatStream({
+        model: 'mistral-small',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
+        safePrompt: true,
       });
 
       const parsedResponse = [];
