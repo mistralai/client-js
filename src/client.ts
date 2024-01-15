@@ -5,7 +5,34 @@ import fetch from "isomorphic-fetch";
  *
  * @class
  */
-export class MistralClient {}
+export class MistralClient {
+  private apiKey: string;
+  private config: MistralClientConfig;
+
+  /**
+   * Creates an instance of MistralClient.
+   *
+   * @param {string} [apiKey=process.env.MISTRAL_API_KEY] The API key for accessing the Mistral API. Defaults to the environment variable MISTRAL_API_KEY.
+   * @param {string} [endpoint="https://api.mistral.ai"] The endpoint URL of the Mistral API.
+   * @param {number} [maxRetries=5] The maximum number of retries for a request in case of failures.
+   * @param {number} [timeout=120] The timeout for API requests in seconds.
+   * @throws {MistralClientError} Throws an error if the API key is not provided or invalid.
+   */
+  constructor(
+    apiKey: string = process.env.MISTRAL_API_KEY as string,
+    endpoint: string = "https://api.mistral.ai",
+    maxRetries: number = 5,
+    timeout: number = 120
+  ) {
+    if (!apiKey?.length)
+      throw new MistralClientError(
+        "MistralClient was not provided a valid API key"
+      );
+
+    this.apiKey = apiKey ?? (process.env.MISTRAL_API_KEY as string);
+    this.config = { endpoint, maxRetries, timeout };
+  }
+}
 
 /**
  * Represents an error specific to the Mistral API.
@@ -30,3 +57,8 @@ export class MistralClientError extends Error {
 /****************************************************
  Entities
 ****************************************************/
+interface MistralClientConfig {
+  endpoint: string;
+  maxRetries: number;
+  timeout: number;
+}

@@ -4,27 +4,6 @@ const ENDPOINT = "https://api.mistral.ai";
 
 class MistralClient {
   /**
-   * A simple and lightweight client for the Mistral API
-   * @param {*} apiKey can be set as an environment variable MISTRAL_API_KEY,
-   * or provided in this parameter
-   * @param {*} endpoint defaults to https://api.mistral.ai
-   * @param {*} maxRetries defaults to 5
-   * @param {*} timeout defaults to 120 seconds
-   */
-  constructor(
-    apiKey = process.env.MISTRAL_API_KEY,
-    endpoint = ENDPOINT,
-    maxRetries = 5,
-    timeout = 120
-  ) {
-    this.endpoint = endpoint;
-    this.apiKey = apiKey;
-
-    this.maxRetries = maxRetries;
-    this.timeout = timeout;
-  }
-
-  /**
    *
    * @param {*} method
    * @param {*} path
