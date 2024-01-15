@@ -40,6 +40,12 @@ export class MistralClient {
   ) => {
     for (let attempts = 0; attempts < this.config.maxRetries; attempts++) {
       const res = await this.makeFetchRequest(path, method, params);
+
+      // response is ok always returns
+      if (res.ok)
+        if (isStreamableType(params) && params?.stream)
+          return handleStreamResponse(res);
+        else return res.json();
     }
   };
 
@@ -102,4 +108,30 @@ interface MistralClientConfig {
   endpoint: string;
   maxRetries: number;
   timeout: number;
+}
+
+/****************************************************
+ Utilities
+****************************************************/
+async function* handleStreamResponse(response: Response) {
+  const reader = response.body?.getReader();
+  if (!reader)
+    throw new MistralClientError(
+      "Unknown error occured and MistralClient was unable to establish stream"
+    );
+  const decoder = new TextDecoder();
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      yield decoder.decode(value, { stream: true });
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+function isStreamableType(params: any): params is { stream: true } {
+  return params !== undefined && "stream" in params;
 }

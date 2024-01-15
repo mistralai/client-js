@@ -13,35 +13,7 @@ class MistralClient {
   _request = async function (method, path, request) {
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
-        const response = await fetch(url, options);
-
-        if (response.ok) {
-          if (request?.stream) {
-            if (isNode) {
-              return response.body;
-            } else {
-              const reader = response.body.getReader();
-              // Chrome does not support async iterators yet, so polyfill it
-              const asyncIterator = async function* () {
-                try {
-                  while (true) {
-                    // Read from the stream
-                    const { done, value } = await reader.read();
-                    // Exit if we're done
-                    if (done) return;
-                    // Else yield the chunk
-                    yield value;
-                  }
-                } finally {
-                  reader.releaseLock();
-                }
-              };
-
-              return asyncIterator();
-            }
-          }
-          return await response.json();
-        } else if (RETRY_STATUS_CODES.includes(response.status)) {
+        if (RETRY_STATUS_CODES.includes(response.status)) {
           console.debug(
             `Retrying request on response status: ${response.status}`,
             `Response: ${await response.text()}`,
