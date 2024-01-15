@@ -54,6 +54,10 @@ export class MistralClient {
     },
   };
 
+  chat = this.v1.chat.create;
+  embeddings = this.v1.embeddings.create;
+  listModels = this.v1.models.list;
+
   public _request = async (path: string, method: HTTPMethod, params?: {}) => {
     for (let attempts = 0; attempts < this.config.maxRetries; attempts++) {
       const res = await this.makeFetchRequest(path, method, params);
