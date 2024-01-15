@@ -165,57 +165,18 @@ export interface CreateEmbedding {
   input: string[];
 }
 
-interface MistralClientConfig {
-  endpoint: string;
-  maxRetries: number;
-  timeout: number;
-}
-
-export interface MistralMessage {
-  role: "user" | "system";
-  content: string;
-}
-
-export interface ModelPermission {
-  id: string;
-  object: "model_permission";
-  created: number;
-  allow_create_engine: boolean;
-  allow_sampling: boolean;
-  allow_logprobs: boolean;
-  allow_search_indices: boolean;
-  allow_view: boolean;
-  allow_fine_tuning: boolean;
-  organization: string;
-  group: string | null;
-  is_blocking: boolean;
-}
-
-export interface Model {
-  id: string;
-  object: "model";
-  created: number;
-  owned_by: string;
-  root: string | null;
-  parent: string | null;
-  permission: ModelPermission[];
-}
-
-export interface ListModelsResponse {
-  object: "list";
-  data: Model[];
-}
-
-export interface TokenUsage {
-  prompt_tokens: number;
-  completion_tokens: number;
-  total_tokens: number;
-}
-
 export interface ChatCompletionResponseChoice {
   index: number;
   message: { role: string; content: string };
   finish_reason: string;
+}
+
+export interface ChatCompletionResponseChunk {
+  id: string;
+  object: "chat.completion.chunk";
+  created: number;
+  model: string;
+  choices: ChatCompletionResponseChunkChoice[];
 }
 
 export interface ChatCompletionResponseChunkChoice {
@@ -233,14 +194,6 @@ export interface ChatCompletionResponse {
   usage: TokenUsage;
 }
 
-export interface ChatCompletionResponseChunk {
-  id: string;
-  object: "chat.completion.chunk";
-  created: number;
-  model: string;
-  choices: ChatCompletionResponseChunkChoice[];
-}
-
 export interface Embedding {
   id: string;
   object: "embedding";
@@ -253,6 +206,53 @@ export interface EmbeddingResponse {
   data: Embedding[];
   model: string;
   usage: TokenUsage;
+}
+
+export interface ListModelsResponse {
+  object: "list";
+  data: Model[];
+}
+
+export interface MistralClientConfig {
+  endpoint: string;
+  maxRetries: number;
+  timeout: number;
+}
+
+export interface MistralMessage {
+  role: "user" | "system";
+  content: string;
+}
+
+export interface Model {
+  id: string;
+  object: "model";
+  created: number;
+  owned_by: string;
+  root: string | null;
+  parent: string | null;
+  permission: ModelPermission[];
+}
+
+export interface ModelPermission {
+  id: string;
+  object: "model_permission";
+  created: number;
+  allow_create_engine: boolean;
+  allow_sampling: boolean;
+  allow_logprobs: boolean;
+  allow_search_indices: boolean;
+  allow_view: boolean;
+  allow_fine_tuning: boolean;
+  organization: string;
+  group: string | null;
+  is_blocking: boolean;
+}
+
+export interface TokenUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
 }
 
 /****************************************************
