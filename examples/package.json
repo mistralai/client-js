@@ -7,5 +7,12 @@
     "@mistralai/mistralai": "file:../",
     "dotenv": "^16.3.1"
   },
-  "keywords": []
+  "keywords": [],
+  "scripts": {
+    "chat-no-streaming": "node ./chat-no-streaming.js",
+    "chat-with-streaming": "node ./chat-with-streaming.js",
+    "embeddings": "node ./embeddings.js",
+    "list-models": "node ./list-models.js",
+    "refresh": "rm -rf node_modules package-lock.json; npm install"
+  }
 }
