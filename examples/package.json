@@ -1,10 +1,18 @@
 {
-    "name": "mistralai client examples",
-    "version": "1.0.0",
-    "description": "",
-    "type": "module",
-    "dependencies": {
-      "@mistralai/mistralai": "file:../"
-    },
-    "keywords": []
+  "name": "mistralai-client-examples",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "@mistralai/mistralai": "file:../",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [],
+  "scripts": {
+    "chat-no-streaming": "node ./chat-no-streaming.js",
+    "chat-with-streaming": "node ./chat-with-streaming.js",
+    "embeddings": "node ./embeddings.js",
+    "list-models": "node ./list-models.js",
+    "refresh": "rm -rf node_modules package-lock.json; npm install"
   }
+}
