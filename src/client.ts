@@ -146,6 +146,8 @@ class MistralClient {
     throw new MistralClientError("Max retries reached");
   };
 
+  // handleStreamResponse is a method, instead of a utility function,
+  // because it needs to be mocked for tests
   public async *handleStreamResponse(response: Response) {
     if (!response.body)
       throw new MistralClientError(
