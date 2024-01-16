@@ -9,6 +9,7 @@ import {
   mockChatResponsePayload,
   mockFetchStream,
 } from "./utils.js";
+import jest from "jest-mock";
 
 beforeEach(() => {
   fetch.resetMocks();
@@ -137,6 +138,62 @@ describe("MistralClient Methods", () => {
 
       const response = await client.listModels();
       expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe("chatStream()", () => {
+    const chunkCount = 10;
+    jest
+      .spyOn(MistralClient.prototype, "handleStreamResponse")
+      .mockImplementation(async function* () {
+        for (let i = 0; i < chunkCount; i++) yield `chunk${i}`;
+      });
+
+    const setupMockStreamResponse = (mockResponse) => {
+      fetchMock.mockResponse(async () => {
+        const readableStream = new ReadableStream({
+          start(controller) {
+            for (const chunk of mockResponse) controller.enqueue(chunk);
+            controller.close();
+          },
+        });
+        return new Response(readableStream);
+      });
+    };
+
+    it("should return parsed, streamed response", async () => {
+      const mockResponse = mockChatResponseStreamingPayload();
+      setupMockStreamResponse(mockResponse);
+
+      const response = await client.chatStream({
+        model: "mistral-small",
+        messages: [
+          { role: "user", content: "What is the best French cheese?" },
+        ],
+      });
+
+      const parsedResponse = [];
+      for await (const r of response) {
+        parsedResponse.push(r);
+      }
+
+      expect(parsedResponse.length).toEqual(chunkCount);
+    });
+
+    it("should return parsed, streamed response with safePrompt", async () => {
+      const client = new MistralClient();
+      const response = await client.chatStream({
+        model: "mistral-small",
+        messages: [
+          { role: "user", content: "What is the best French cheese?" },
+        ],
+        safePrompt: true,
+      });
+
+      const parsedResponse = [];
+      for await (const r of response) parsedResponse.push(r);
+
+      expect(parsedResponse.length).toEqual(chunkCount);
     });
   });
 });

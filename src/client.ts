@@ -118,7 +118,7 @@ class MistralClient {
       // response is ok always returns
       if (res.ok)
         if (isStreamableType(params) && params?.stream)
-          return handleStreamResponse(res) as unknown as T;
+          return this.handleStreamResponse(res) as unknown as T;
         else return res.json() as Promise<T>;
 
       // response has retry-able error code
@@ -145,6 +145,37 @@ class MistralClient {
 
     throw new MistralClientError("Max retries reached");
   };
+
+  public async *handleStreamResponse(response: Response) {
+    if (!response.body)
+      throw new MistralClientError(
+        "Unknown error: response.body for stream is undefined or null"
+      );
+
+    // fetch versions handle streams differently and standardizing the fetch
+    // version is challenging due to the glorious practice of global polyfilling.
+    //
+    // ReadableStream is used in most browsers and the latest node-fetch versions.
+    // NodeJSStream is used in older Node.js versions and some isomorphic-fetch versions.
+    //
+    // The following conditional handling resolves these discrepancies.
+    if (response.body instanceof ReadableStream) {
+      const asyncIterator = convertReadableStreamToAsyncIterable(response.body);
+
+      const textDecoder = new TextDecoder();
+      for await (const chunk of asyncIterator) {
+        yield textDecoder.decode(chunk, { stream: true });
+      }
+    } else if (typeof (response.body as any).on === "function") {
+      // handle as nodejs stream
+      for await (const chunk of response.body as any as NodeJS.ReadableStream) {
+        yield chunk.toString();
+      }
+    } else
+      throw new Error(
+        "Unknown response body type or streaming method not supported."
+      );
+  }
 
   private makeFetchRequest = async (
     path: string,
@@ -327,37 +358,6 @@ async function* convertReadableStreamToAsyncIterable(
   } finally {
     reader.releaseLock();
   }
-}
-
-async function* handleStreamResponse(response: Response) {
-  if (!response.body)
-    throw new MistralClientError(
-      "Unknown error: response.body for stream is undefined or null"
-    );
-
-  // fetch versions handle streams differently and standardizing the fetch
-  // version is challenging due to the glorious practice of global polyfilling.
-  //
-  // ReadableStream is used in most browsers and the latest node-fetch versions.
-  // NodeJSStream is used in older Node.js versions and some isomorphic-fetch versions.
-  //
-  // The following conditional handling resolves these discrepancies.
-  if (response.body instanceof ReadableStream) {
-    const asyncIterator = convertReadableStreamToAsyncIterable(response.body);
-
-    const textDecoder = new TextDecoder();
-    for await (const chunk of asyncIterator) {
-      yield textDecoder.decode(chunk, { stream: true });
-    }
-  } else if (typeof (response.body as any).on === "function") {
-    // handle as nodejs stream
-    for await (const chunk of response.body as any as NodeJS.ReadableStream) {
-      yield chunk.toString();
-    }
-  } else
-    throw new Error(
-      "Unknown response body type or streaming method not supported."
-    );
 }
 
 function isStreamableType(params: any): params is StreamableParameters {
