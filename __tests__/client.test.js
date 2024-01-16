@@ -78,6 +78,36 @@ describe("MistralClient Methods", () => {
 
       expect(response).toEqual(mockResponse);
     });
+
+    it("should return a chat response object if safeMode is set", async () => {
+      const mockResponse = mockChatResponsePayload();
+      fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+      const response = await client.chat({
+        model: "mistral-small",
+        messages: [
+          { role: "user", content: "What is the best French cheese?" },
+        ],
+        safeMode: true,
+      });
+
+      expect(response).toEqual(mockResponse);
+    });
+
+    it("should return a chat response object if safePrompt is set", async () => {
+      const mockResponse = mockChatResponsePayload();
+      fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+      const response = await client.chat({
+        model: "mistral-small",
+        messages: [
+          { role: "user", content: "What is the best French cheese?" },
+        ],
+        safePrompt: true,
+      });
+
+      expect(response).toEqual(mockResponse);
+    });
   });
 
   describe("listModels()", () => {

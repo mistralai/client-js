@@ -16,44 +16,6 @@ describe("Mistral Client", () => {
     client = new MistralClient();
   });
 
-  describe("chat()", () => {
-    it("should return a chat response object if safeMode is set", async () => {
-      // Mock the fetch function
-      const mockResponse = mockChatResponsePayload();
-      globalThis.fetch = mockFetch(200, mockResponse);
-
-      const response = await client.chat({
-        model: "mistral-small",
-        messages: [
-          {
-            role: "user",
-            content: "What is the best French cheese?",
-          },
-        ],
-        safeMode: true,
-      });
-      expect(response).toEqual(mockResponse);
-    });
-
-    it("should return a chat response object if safePrompt is set", async () => {
-      // Mock the fetch function
-      const mockResponse = mockChatResponsePayload();
-      globalThis.fetch = mockFetch(200, mockResponse);
-
-      const response = await client.chat({
-        model: "mistral-small",
-        messages: [
-          {
-            role: "user",
-            content: "What is the best French cheese?",
-          },
-        ],
-        safePrompt: true,
-      });
-      expect(response).toEqual(mockResponse);
-    });
-  });
-
   describe("chatStream()", () => {
     it("should return parsed, streamed response", async () => {
       // Mock the fetch function
