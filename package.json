@@ -31,7 +31,8 @@
       "./scripts/setupJest.js"
     ],
     "testPathIgnorePatterns": [
-      "examples"
+      "examples",
+      "__tests__/utils.js"
     ]
   },
   "dependencies": {

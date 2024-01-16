@@ -1,4 +1,4 @@
-import jest from 'jest-mock';
+import jest from "jest-mock";
 
 /**
  * Mock the fetch function
@@ -13,7 +13,7 @@ export function mockFetch(status, payload) {
       text: () => Promise.resolve(JSON.stringify(payload)),
       status,
       ok: status >= 200 && status < 300,
-    }),
+    })
   );
 }
 
@@ -41,7 +41,7 @@ export function mockFetchStream(status, payload) {
       body: asyncIterator(),
       status,
       ok: status >= 200 && status < 300,
-    }),
+    })
   );
 }
 
@@ -51,19 +51,19 @@ export function mockFetchStream(status, payload) {
  */
 export function mockListModels() {
   return {
-    object: 'list',
+    object: "list",
     data: [
       {
-        id: 'mistral-medium',
-        object: 'model',
+        id: "mistral-medium",
+        object: "model",
         created: 1703186988,
-        owned_by: 'mistralai',
+        owned_by: "mistralai",
         root: null,
         parent: null,
         permission: [
           {
-            id: 'modelperm-15bebaf316264adb84b891bf06a84933',
-            object: 'model_permission',
+            id: "modelperm-15bebaf316264adb84b891bf06a84933",
+            object: "model_permission",
             created: 1703186988,
             allow_create_engine: false,
             allow_sampling: true,
@@ -71,23 +71,23 @@ export function mockListModels() {
             allow_search_indices: false,
             allow_view: true,
             allow_fine_tuning: false,
-            organization: '*',
+            organization: "*",
             group: null,
             is_blocking: false,
           },
         ],
       },
       {
-        id: 'mistral-small',
-        object: 'model',
+        id: "mistral-small",
+        object: "model",
         created: 1703186988,
-        owned_by: 'mistralai',
+        owned_by: "mistralai",
         root: null,
         parent: null,
         permission: [
           {
-            id: 'modelperm-d0dced5c703242fa862f4ca3f241c00e',
-            object: 'model_permission',
+            id: "modelperm-d0dced5c703242fa862f4ca3f241c00e",
+            object: "model_permission",
             created: 1703186988,
             allow_create_engine: false,
             allow_sampling: true,
@@ -95,23 +95,23 @@ export function mockListModels() {
             allow_search_indices: false,
             allow_view: true,
             allow_fine_tuning: false,
-            organization: '*',
+            organization: "*",
             group: null,
             is_blocking: false,
           },
         ],
       },
       {
-        id: 'mistral-tiny',
-        object: 'model',
+        id: "mistral-tiny",
+        object: "model",
         created: 1703186988,
-        owned_by: 'mistralai',
+        owned_by: "mistralai",
         root: null,
         parent: null,
         permission: [
           {
-            id: 'modelperm-0e64e727c3a94f17b29f8895d4be2910',
-            object: 'model_permission',
+            id: "modelperm-0e64e727c3a94f17b29f8895d4be2910",
+            object: "model_permission",
             created: 1703186988,
             allow_create_engine: false,
             allow_sampling: true,
@@ -119,23 +119,23 @@ export function mockListModels() {
             allow_search_indices: false,
             allow_view: true,
             allow_fine_tuning: false,
-            organization: '*',
+            organization: "*",
             group: null,
             is_blocking: false,
           },
         ],
       },
       {
-        id: 'mistral-embed',
-        object: 'model',
+        id: "mistral-embed",
+        object: "model",
         created: 1703186988,
-        owned_by: 'mistralai',
+        owned_by: "mistralai",
         root: null,
         parent: null,
         permission: [
           {
-            id: 'modelperm-ebdff9046f524e628059447b5932e3ad',
-            object: 'model_permission',
+            id: "modelperm-ebdff9046f524e628059447b5932e3ad",
+            object: "model_permission",
             created: 1703186988,
             allow_create_engine: false,
             allow_sampling: true,
@@ -143,7 +143,7 @@ export function mockListModels() {
             allow_search_indices: false,
             allow_view: true,
             allow_fine_tuning: false,
-            organization: '*',
+            organization: "*",
             group: null,
             is_blocking: false,
           },
@@ -159,21 +159,21 @@ export function mockListModels() {
  */
 export function mockChatResponsePayload() {
   return {
-    id: 'chat-98c8c60e3fbf4fc49658eddaf447357c',
-    object: 'chat.completion',
+    id: "chat-98c8c60e3fbf4fc49658eddaf447357c",
+    object: "chat.completion",
     created: 1703165682,
     choices: [
       {
-        finish_reason: 'stop',
+        finish_reason: "stop",
         message: {
-          role: 'assistant',
-          content: 'What is the best French cheese?',
+          role: "assistant",
+          content: "What is the best French cheese?",
         },
         index: 0,
       },
     ],
-    model: 'mistral-small',
-    usage: {prompt_tokens: 90, total_tokens: 90, completion_tokens: 0},
+    model: "mistral-small",
+    usage: { prompt_tokens: 90, total_tokens: 90, completion_tokens: 0 },
   };
 }
 
@@ -183,40 +183,45 @@ export function mockChatResponsePayload() {
  */
 export function mockChatResponseStreamingPayload() {
   const encoder = new TextEncoder();
-  const firstMessage =
-    [encoder.encode('data: ' +
-    JSON.stringify({
-      id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
-      model: 'mistral-small',
-      choices: [
-        {
-          index: 0,
-          delta: {role: 'assistant'},
-          finish_reason: null,
-        },
-      ],
-    }) +
-    '\n\n')];
-  const lastMessage = [encoder.encode('data: [DONE]\n\n')];
-
-  const dataMessages = [];
-  for (let i = 0; i < 10; i++) {
-    dataMessages.push(encoder.encode(
-      'data: ' +
+  const firstMessage = [
+    encoder.encode(
+      "data: " +
         JSON.stringify({
-          id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
-          object: 'chat.completion.chunk',
-          created: 1703168544,
-          model: 'mistral-small',
+          id: "cmpl-8cd9019d21ba490aa6b9740f5d0a883e",
+          model: "mistral-small",
           choices: [
             {
-              index: i,
-              delta: {content: `stream response ${i}`},
+              index: 0,
+              delta: { role: "assistant" },
               finish_reason: null,
             },
           ],
         }) +
-        '\n\n'),
+        "\n\n"
+    ),
+  ];
+  const lastMessage = [encoder.encode("data: [DONE]\n\n")];
+
+  const dataMessages = [];
+  for (let i = 0; i < 10; i++) {
+    dataMessages.push(
+      encoder.encode(
+        "data: " +
+          JSON.stringify({
+            id: "cmpl-8cd9019d21ba490aa6b9740f5d0a883e",
+            object: "chat.completion.chunk",
+            created: 1703168544,
+            model: "mistral-small",
+            choices: [
+              {
+                index: i,
+                delta: { content: `stream response ${i}` },
+                finish_reason: null,
+              },
+            ],
+          }) +
+          "\n\n"
+      )
     );
   }
 
@@ -230,18 +235,18 @@ export function mockChatResponseStreamingPayload() {
  */
 export function mockEmbeddingResponsePayload(batchSize = 1) {
   return {
-    id: 'embd-98c8c60e3fbf4fc49658eddaf447357c',
-    object: 'list',
+    id: "embd-98c8c60e3fbf4fc49658eddaf447357c",
+    object: "list",
     data:
       [
         {
-          object: 'embedding',
+          object: "embedding",
           embedding: [-0.018585205078125, 0.027099609375, 0.02587890625],
           index: 0,
         },
       ] * batchSize,
-    model: 'mistral-embed',
-    usage: {prompt_tokens: 90, total_tokens: 90, completion_tokens: 0},
+    model: "mistral-embed",
+    usage: { prompt_tokens: 90, total_tokens: 90, completion_tokens: 0 },
   };
 }
 
@@ -251,7 +256,7 @@ export function mockEmbeddingResponsePayload(batchSize = 1) {
  */
 export function mockEmbeddingRequest() {
   return {
-    model: 'mistral-embed',
-    input: 'embed',
+    model: "mistral-embed",
+    input: "embed",
   };
 }
