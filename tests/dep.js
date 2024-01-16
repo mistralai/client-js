@@ -88,26 +88,4 @@ describe("Mistral Client", () => {
       expect(parsedResponse.length).toEqual(11);
     });
   });
-
-  describe("embeddings()", () => {
-    it("should return embeddings", async () => {
-      // Mock the fetch function
-      const mockResponse = mockEmbeddingResponsePayload();
-      globalThis.fetch = mockFetch(200, mockResponse);
-
-      const response = await client.embeddings(mockEmbeddingRequest);
-      expect(response).toEqual(mockResponse);
-    });
-  });
-
-  describe("embeddings() batched", () => {
-    it("should return batched embeddings", async () => {
-      // Mock the fetch function
-      const mockResponse = mockEmbeddingResponsePayload(10);
-      globalThis.fetch = mockFetch(200, mockResponse);
-
-      const response = await client.embeddings(mockEmbeddingRequest);
-      expect(response).toEqual(mockResponse);
-    });
-  });
 });

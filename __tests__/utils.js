@@ -234,17 +234,19 @@ export function mockChatResponseStreamingPayload() {
  * @return {Object}
  */
 export function mockEmbeddingResponsePayload(batchSize = 1) {
+  const data = [];
+
+  for (let i = 0; i < batchSize; i++)
+    data.push({
+      object: "embedding",
+      embedding: [-0.018585205078125, 0.027099609375, 0.02587890625],
+      index: 0,
+    });
+
   return {
     id: "embd-98c8c60e3fbf4fc49658eddaf447357c",
     object: "list",
-    data:
-      [
-        {
-          object: "embedding",
-          embedding: [-0.018585205078125, 0.027099609375, 0.02587890625],
-          index: 0,
-        },
-      ] * batchSize,
+    data,
     model: "mistral-embed",
     usage: { prompt_tokens: 90, total_tokens: 90, completion_tokens: 0 },
   };

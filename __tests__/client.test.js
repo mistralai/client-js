@@ -110,6 +110,26 @@ describe("MistralClient Methods", () => {
     });
   });
 
+  describe("embeddings()", () => {
+    it("should return embeddings", async () => {
+      const mockResponse = mockEmbeddingResponsePayload();
+      fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+      const response = await client.embeddings(mockEmbeddingRequest);
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe("embeddings() batched", () => {
+    it("should return batched embeddings", async () => {
+      const mockResponse = mockEmbeddingResponsePayload(10);
+      fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+      const response = await client.embeddings(mockEmbeddingRequest);
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
   describe("listModels()", () => {
     it("should return a list of models", async () => {
       const mockResponse = mockListModels();
