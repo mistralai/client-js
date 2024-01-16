@@ -1,4 +1,9 @@
 import MistralClient from "../dist/client.module.js";
+import fetchMock from "jest-fetch-mock";
+
+beforeEach(() => {
+  fetch.resetMocks();
+});
 
 describe("MistralClient Constructor", () => {
   it("should initialize with default values if no arguments are provided", () => {
@@ -37,5 +42,27 @@ describe("MistralClient Constructor", () => {
       process.env.MISTRAL_API_KEY = undefined;
       new MistralClient("");
     }).toThrow("MistralClient was not provided a valid API key");
+  });
+});
+
+describe("MistralClient", () => {
+  it("chat() sends a request and handles response correctly", async () => {
+    const mockApiKey = "test-api-key";
+    const mockEndpoint = "https://mock.api";
+    const mockModel = "mistral-tiny";
+    const mockMessages = [{ role: "user", content: "Hello, world!" }];
+
+    // Mocking the fetch response
+    fetchMock.mockResponseOnce(JSON.stringify({ success: true }));
+
+    const client = new MistralClient(mockApiKey, mockEndpoint);
+
+    await client.chat({
+      model: mockModel,
+      messages: mockMessages,
+    });
+
+    // Checking if the fetch was called correctly
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });
