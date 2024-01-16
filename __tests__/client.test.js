@@ -1,5 +1,14 @@
 import MistralClient from "../dist/client.module.js";
 import fetchMock from "jest-fetch-mock";
+import {
+  mockListModels,
+  mockFetch,
+  mockChatResponseStreamingPayload,
+  mockEmbeddingRequest,
+  mockEmbeddingResponsePayload,
+  mockChatResponsePayload,
+  mockFetchStream,
+} from "./utils.js";
 
 beforeEach(() => {
   fetch.resetMocks();
@@ -45,24 +54,39 @@ describe("MistralClient Constructor", () => {
   });
 });
 
-describe("MistralClient", () => {
-  it("chat() sends a request and handles response correctly", async () => {
+describe("MistralClient methods", () => {
+  let client;
+  beforeEach(() => {
     const mockApiKey = "test-api-key";
     const mockEndpoint = "https://mock.api";
-    const mockModel = "mistral-tiny";
-    const mockMessages = [{ role: "user", content: "Hello, world!" }];
 
-    // Mocking the fetch response
-    fetchMock.mockResponseOnce(JSON.stringify({ success: true }));
+    fetchMock.resetMocks();
+    client = new MistralClient(mockApiKey, mockEndpoint);
+  });
 
-    const client = new MistralClient(mockApiKey, mockEndpoint);
+  describe("chat()", () => {
+    it("should return a chat response object", async () => {
+      const mockResponse = mockChatResponsePayload();
+      fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
 
-    await client.chat({
-      model: mockModel,
-      messages: mockMessages,
+      const response = await client.chat({
+        model: "mistral-small",
+        messages: [
+          { role: "user", content: "What is the best French cheese?" },
+        ],
+      });
+
+      expect(response).toEqual(mockResponse);
     });
+  });
 
-    // Checking if the fetch was called correctly
-    expect(fetch).toHaveBeenCalledTimes(1);
+  describe("listModels()", () => {
+    it("should return a list of models", async () => {
+      const mockResponse = mockListModels();
+      fetchMock.mockResponseOnce(JSON.stringify(mockResponse));
+
+      const response = await client.listModels();
+      expect(response).toEqual(mockResponse);
+    });
   });
 });
