@@ -54,7 +54,7 @@ describe("MistralClient Constructor", () => {
   });
 });
 
-describe("MistralClient methods", () => {
+describe("MistralClient Methods", () => {
   let client;
   beforeEach(() => {
     const mockApiKey = "test-api-key";
