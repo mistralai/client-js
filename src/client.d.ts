@@ -68,6 +68,7 @@ declare module '@mistralai/mistralai' {
         created: number;
         model: string;
         choices: ChatCompletionResponseChunkChoice[];
+        usage: TokenUsage | null;
     }
 
     export interface Embedding {
