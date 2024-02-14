@@ -149,6 +149,7 @@ class MistralClient {
    * Creates a chat completion request
    * @param {*} model
    * @param {*} messages
+   * @param {*} tools
    * @param {*} temperature
    * @param {*} maxTokens
    * @param {*} topP
@@ -161,6 +162,7 @@ class MistralClient {
   _makeChatCompletionRequest = function(
     model,
     messages,
+    tools,
     temperature,
     maxTokens,
     topP,
@@ -172,6 +174,7 @@ class MistralClient {
     return {
       model: model,
       messages: messages,
+      tools: tools ?? undefined,
       temperature: temperature ?? undefined,
       max_tokens: maxTokens ?? undefined,
       top_p: topP ?? undefined,
@@ -195,6 +198,7 @@ class MistralClient {
    * @param {*} model the name of the model to chat with, e.g. mistral-tiny
    * @param {*} messages an array of messages to chat with, e.g.
    * [{role: 'user', content: 'What is the best French cheese?'}]
+   * @param {*} tools  a list of tools to use.
    * @param {*} temperature the temperature to use for sampling, e.g. 0.5
    * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
    * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
@@ -206,6 +210,7 @@ class MistralClient {
   chat = async function({
     model,
     messages,
+    tools,
     temperature,
     maxTokens,
     topP,
@@ -216,6 +221,7 @@ class MistralClient {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
+      tools,
       temperature,
       maxTokens,
       topP,
@@ -237,6 +243,7 @@ class MistralClient {
    * @param {*} model the name of the model to chat with, e.g. mistral-tiny
    * @param {*} messages an array of messages to chat with, e.g.
    * [{role: 'user', content: 'What is the best French cheese?'}]
+   * @param {*} tools  a list of tools to use.
    * @param {*} temperature the temperature to use for sampling, e.g. 0.5
    * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
    * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
@@ -248,6 +255,7 @@ class MistralClient {
   chatStream = async function* ({
     model,
     messages,
+    tools,
     temperature,
     maxTokens,
     topP,
@@ -258,6 +266,7 @@ class MistralClient {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
+      tools,
       temperature,
       maxTokens,
       topP,

@@ -29,6 +29,27 @@ declare module '@mistralai/mistralai' {
         data: Model[];
     }
 
+    export interface Function {
+        name: string;
+        description: string;
+        parameters: object;
+    }
+
+    export enum ToolType {
+        function = 'function',
+    }
+
+    export interface FunctionCall {
+        name: string;
+        arguments: string;
+    }
+
+    export interface ToolCalls {
+        id: 'null';
+        type: ToolType = ToolType.function;
+        function: FunctionCall;
+    }
+
     export interface TokenUsage {
         prompt_tokens: number;
         completion_tokens: number;
@@ -49,6 +70,7 @@ declare module '@mistralai/mistralai' {
         delta: {
             role?: string;
             content?: string;
+            tool_calls?: ToolCalls[];
         };
         finish_reason: string;
     }
@@ -95,7 +117,8 @@ declare module '@mistralai/mistralai' {
 
         private _makeChatCompletionRequest(
             model: string,
-            messages: Array<{ role: string; content: string }>,
+            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>,
+            tools?: Array<{ type: string; function:Function; }>, 
             temperature?: number,
             maxTokens?: number,
             topP?: number,
@@ -112,7 +135,8 @@ declare module '@mistralai/mistralai' {
 
         chat(options: {
             model: string;
-            messages: Array<{ role: string; content: string }>;
+            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
+            tools?: Array<{ type: string; function:Function; }>; 
             temperature?: number;
             maxTokens?: number;
             topP?: number;
@@ -126,7 +150,8 @@ declare module '@mistralai/mistralai' {
 
         chatStream(options: {
             model: string;
-            messages: Array<{ role: string; content: string }>;
+            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
+            tools?: Array<{ type: string; function:Function; }>;
             temperature?: number;
             maxTokens?: number;
             topP?: number;
