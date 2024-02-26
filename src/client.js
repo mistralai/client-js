@@ -61,6 +61,10 @@ class MistralClient {
 
     this.maxRetries = maxRetries;
     this.timeout = timeout;
+
+    if (this.endpoint.indexOf('inference.azure.com')) {
+      this.modelDefault = 'mistral';
+    }
   }
 
   /**
@@ -149,6 +153,7 @@ class MistralClient {
    * Creates a chat completion request
    * @param {*} model
    * @param {*} messages
+   * @param {*} tools
    * @param {*} temperature
    * @param {*} maxTokens
    * @param {*} topP
@@ -156,11 +161,14 @@ class MistralClient {
    * @param {*} stream
    * @param {*} safeMode deprecated use safePrompt instead
    * @param {*} safePrompt
+   * @param {*} toolChoice
+   * @param {*} responseFormat
    * @return {Promise<Object>}
    */
   _makeChatCompletionRequest = function(
     model,
     messages,
+    tools,
     temperature,
     maxTokens,
     topP,
@@ -168,16 +176,27 @@ class MistralClient {
     stream,
     safeMode,
     safePrompt,
+    toolChoice,
+    responseFormat,
   ) {
+    // if modelDefault and model are undefined, throw an error
+    if (!model && !this.modelDefault) {
+      throw new MistralAPIError(
+        'You must provide a model name',
+      );
+    }
     return {
-      model: model,
+      model: model ?? this.modelDefault,
       messages: messages,
+      tools: tools ?? undefined,
       temperature: temperature ?? undefined,
       max_tokens: maxTokens ?? undefined,
       top_p: topP ?? undefined,
       random_seed: randomSeed ?? undefined,
       stream: stream ?? undefined,
       safe_prompt: (safeMode || safePrompt) ?? undefined,
+      tool_choice: toolChoice ?? undefined,
+      response_format: responseFormat ?? undefined,
     };
   };
 
@@ -195,27 +214,34 @@ class MistralClient {
    * @param {*} model the name of the model to chat with, e.g. mistral-tiny
    * @param {*} messages an array of messages to chat with, e.g.
    * [{role: 'user', content: 'What is the best French cheese?'}]
+   * @param {*} tools  a list of tools to use.
    * @param {*} temperature the temperature to use for sampling, e.g. 0.5
    * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
    * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
    * @param {*} randomSeed the random seed to use for sampling, e.g. 42
    * @param {*} safeMode deprecated use safePrompt instead
    * @param {*} safePrompt whether to use safe mode, e.g. true
+   * @param {*} toolChoice the tool to use, e.g. 'auto'
+   * @param {*} responseFormat the format of the response, e.g. 'json_format'
    * @return {Promise<Object>}
    */
   chat = async function({
     model,
     messages,
+    tools,
     temperature,
     maxTokens,
     topP,
     randomSeed,
     safeMode,
     safePrompt,
+    toolChoice,
+    responseFormat,
   }) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
+      tools,
       temperature,
       maxTokens,
       topP,
@@ -223,6 +249,8 @@ class MistralClient {
       false,
       safeMode,
       safePrompt,
+      toolChoice,
+      responseFormat,
     );
     const response = await this._request(
       'post',
@@ -237,27 +265,34 @@ class MistralClient {
    * @param {*} model the name of the model to chat with, e.g. mistral-tiny
    * @param {*} messages an array of messages to chat with, e.g.
    * [{role: 'user', content: 'What is the best French cheese?'}]
+   * @param {*} tools  a list of tools to use.
    * @param {*} temperature the temperature to use for sampling, e.g. 0.5
    * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
    * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
    * @param {*} randomSeed the random seed to use for sampling, e.g. 42
    * @param {*} safeMode deprecated use safePrompt instead
    * @param {*} safePrompt whether to use safe mode, e.g. true
+   * @param {*} toolChoice the tool to use, e.g. 'auto'
+   * @param {*} responseFormat the format of the response, e.g. 'json_format'
    * @return {Promise<Object>}
    */
   chatStream = async function* ({
     model,
     messages,
+    tools,
     temperature,
     maxTokens,
     topP,
     randomSeed,
     safeMode,
     safePrompt,
+    toolChoice,
+    responseFormat,
   }) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
+      tools,
       temperature,
       maxTokens,
       topP,
@@ -265,6 +300,8 @@ class MistralClient {
       true,
       safeMode,
       safePrompt,
+      toolChoice,
+      responseFormat,
     );
     const response = await this._request(
       'post',
