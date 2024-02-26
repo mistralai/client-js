@@ -325,6 +325,8 @@ class MistralClient {
         }
       }
     }
+
+    return response;
   };
 
   /**
