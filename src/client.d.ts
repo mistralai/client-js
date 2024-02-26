@@ -29,6 +29,42 @@ declare module '@mistralai/mistralai' {
         data: Model[];
     }
 
+    export interface Function {
+        name: string;
+        description: string;
+        parameters: object;
+    }
+
+    export enum ToolType {
+        function = 'function',
+    }
+
+    export interface FunctionCall {
+        name: string;
+        arguments: string;
+    }
+
+    export interface ToolCalls {
+        id: 'null';
+        type: ToolType = ToolType.function;
+        function: FunctionCall;
+    }
+
+    export enum ResponseFormats {
+        text = 'text',
+        json_object = 'json_object',
+    }
+
+    export enum ToolChoice {
+        auto = 'auto',
+        any = 'any',
+        none = 'none',
+    }
+
+    export interface ResponseFormat {
+        type: ResponseFormats = ResponseFormats.text;
+    }
+
     export interface TokenUsage {
         prompt_tokens: number;
         completion_tokens: number;
@@ -49,6 +85,7 @@ declare module '@mistralai/mistralai' {
         delta: {
             role?: string;
             content?: string;
+            tool_calls?: ToolCalls[];
         };
         finish_reason: string;
     }
@@ -95,7 +132,8 @@ declare module '@mistralai/mistralai' {
 
         private _makeChatCompletionRequest(
             model: string,
-            messages: Array<{ role: string; content: string }>,
+            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>,
+            tools?: Array<{ type: string; function:Function; }>, 
             temperature?: number,
             maxTokens?: number,
             topP?: number,
@@ -105,14 +143,17 @@ declare module '@mistralai/mistralai' {
              * @deprecated use safePrompt instead
              */
             safeMode?: boolean,
-            safePrompt?: boolean
+            safePrompt?: boolean,
+            toolChoice?: ToolChoice,
+            responseFormat?: ResponseFormat
         ): object;
 
         listModels(): Promise<ListModelsResponse>;
 
         chat(options: {
             model: string;
-            messages: Array<{ role: string; content: string }>;
+            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
+            tools?: Array<{ type: string; function:Function; }>; 
             temperature?: number;
             maxTokens?: number;
             topP?: number;
@@ -122,11 +163,14 @@ declare module '@mistralai/mistralai' {
              */
             safeMode?: boolean;
             safePrompt?: boolean;
+            toolChoice?: ToolChoice;
+            responseFormat?: ResponseFormat; 
         }): Promise<ChatCompletionResponse>;
 
         chatStream(options: {
             model: string;
-            messages: Array<{ role: string; content: string }>;
+            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
+            tools?: Array<{ type: string; function:Function; }>;
             temperature?: number;
             maxTokens?: number;
             topP?: number;
@@ -136,6 +180,8 @@ declare module '@mistralai/mistralai' {
              */
             safeMode?: boolean;
             safePrompt?: boolean;
+            toolChoice?: ToolChoice;
+            responseFormat?: ResponseFormat;
         }): AsyncGenerator<ChatCompletionResponseChunk, void, unknown>;
 
         embeddings(options: {
