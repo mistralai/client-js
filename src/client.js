@@ -61,6 +61,10 @@ class MistralClient {
 
     this.maxRetries = maxRetries;
     this.timeout = timeout;
+
+    if(this.endpoint.indexOf('inference.azure.com')) {
+      this.modelDefault = 'mistral';
+    }
   }
 
   /**
@@ -157,6 +161,8 @@ class MistralClient {
    * @param {*} stream
    * @param {*} safeMode deprecated use safePrompt instead
    * @param {*} safePrompt
+   * @param {*} toolChoice
+   * @param {*} responseFormat
    * @return {Promise<Object>}
    */
   _makeChatCompletionRequest = function(
@@ -170,9 +176,17 @@ class MistralClient {
     stream,
     safeMode,
     safePrompt,
+    toolChoice,
+    responseFormat,
   ) {
+    // if modelDefault and model are undefined, throw an error
+    if (!model && !this.modelDefault) {
+      throw new MistralAPIError(
+        'You must provide a model name',
+      );
+    }
     return {
-      model: model,
+      model: model ?? this.modelDefault,
       messages: messages,
       tools: tools ?? undefined,
       temperature: temperature ?? undefined,
@@ -181,6 +195,8 @@ class MistralClient {
       random_seed: randomSeed ?? undefined,
       stream: stream ?? undefined,
       safe_prompt: (safeMode || safePrompt) ?? undefined,
+      tool_choice: toolChoice ?? undefined,
+      response_format: responseFormat ?? undefined,
     };
   };
 
@@ -205,6 +221,8 @@ class MistralClient {
    * @param {*} randomSeed the random seed to use for sampling, e.g. 42
    * @param {*} safeMode deprecated use safePrompt instead
    * @param {*} safePrompt whether to use safe mode, e.g. true
+   * @param {*} toolChoice the tool to use, e.g. 'auto'
+   * @param {*} responseFormat the format of the response, e.g. 'json_format'
    * @return {Promise<Object>}
    */
   chat = async function({
@@ -217,6 +235,8 @@ class MistralClient {
     randomSeed,
     safeMode,
     safePrompt,
+    toolChoice,
+    responseFormat,
   }) {
     const request = this._makeChatCompletionRequest(
       model,
@@ -229,6 +249,8 @@ class MistralClient {
       false,
       safeMode,
       safePrompt,
+      toolChoice,
+      responseFormat
     );
     const response = await this._request(
       'post',
@@ -250,6 +272,8 @@ class MistralClient {
    * @param {*} randomSeed the random seed to use for sampling, e.g. 42
    * @param {*} safeMode deprecated use safePrompt instead
    * @param {*} safePrompt whether to use safe mode, e.g. true
+   * @param {*} toolChoice the tool to use, e.g. 'auto'
+   * @param {*} responseFormat the format of the response, e.g. 'json_format'
    * @return {Promise<Object>}
    */
   chatStream = async function* ({
@@ -262,6 +286,8 @@ class MistralClient {
     randomSeed,
     safeMode,
     safePrompt,
+    toolChoice,
+    responseFormat
   }) {
     const request = this._makeChatCompletionRequest(
       model,
@@ -274,6 +300,8 @@ class MistralClient {
       true,
       safeMode,
       safePrompt,
+      toolChoice, 
+      responseFormat
     );
     const response = await this._request(
       'post',

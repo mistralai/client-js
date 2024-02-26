@@ -50,6 +50,21 @@ declare module '@mistralai/mistralai' {
         function: FunctionCall;
     }
 
+    export enum ResponseFormats {
+        text = 'text',
+        json_object = 'json_object',
+    }
+
+    export enum ToolChoice {
+        auto = 'auto',
+        any = 'any',
+        none = 'none',
+    }
+
+    export interface ResponseFormat {
+        type: ResponseFormats = ResponseFormats.text;
+    }
+
     export interface TokenUsage {
         prompt_tokens: number;
         completion_tokens: number;
@@ -128,7 +143,9 @@ declare module '@mistralai/mistralai' {
              * @deprecated use safePrompt instead
              */
             safeMode?: boolean,
-            safePrompt?: boolean
+            safePrompt?: boolean,
+            toolChoice?: ToolChoice,
+            responseFormat?: ResponseFormat
         ): object;
 
         listModels(): Promise<ListModelsResponse>;
@@ -146,6 +163,8 @@ declare module '@mistralai/mistralai' {
              */
             safeMode?: boolean;
             safePrompt?: boolean;
+            toolChoice?: ToolChoice;
+            responseFormat?: ResponseFormat; 
         }): Promise<ChatCompletionResponse>;
 
         chatStream(options: {
@@ -161,6 +180,8 @@ declare module '@mistralai/mistralai' {
              */
             safeMode?: boolean;
             safePrompt?: boolean;
+            toolChoice?: ToolChoice;
+            responseFormat?: ResponseFormat;
         }): AsyncGenerator<ChatCompletionResponseChunk, void, unknown>;
 
         embeddings(options: {
