@@ -62,7 +62,7 @@ class MistralClient {
     this.maxRetries = maxRetries;
     this.timeout = timeout;
 
-    if(this.endpoint.indexOf('inference.azure.com')) {
+    if (this.endpoint.indexOf('inference.azure.com')) {
       this.modelDefault = 'mistral';
     }
   }
@@ -250,7 +250,7 @@ class MistralClient {
       safeMode,
       safePrompt,
       toolChoice,
-      responseFormat
+      responseFormat,
     );
     const response = await this._request(
       'post',
@@ -287,7 +287,7 @@ class MistralClient {
     safeMode,
     safePrompt,
     toolChoice,
-    responseFormat
+    responseFormat,
   }) {
     const request = this._makeChatCompletionRequest(
       model,
@@ -300,8 +300,8 @@ class MistralClient {
       true,
       safeMode,
       safePrompt,
-      toolChoice, 
-      responseFormat
+      toolChoice,
+      responseFormat,
     );
     const response = await this._request(
       'post',
