@@ -1,5 +1,8 @@
 let isNode = false;
 
+// initializeFetch() will populate this variable with a fetch implementation
+let fetch;
+
 const VERSION = '0.0.3';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
