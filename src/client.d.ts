@@ -76,6 +76,7 @@ declare module '@mistralai/mistralai' {
         message: {
             role: string;
             content: string;
+            tool_calls: null | ToolCalls[];
         };
         finish_reason: string;
     }
@@ -134,7 +135,7 @@ declare module '@mistralai/mistralai' {
         private _makeChatCompletionRequest(
             model: string,
             messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>,
-            tools?: Array<{ type: string; function:Function; }>, 
+            tools?: Array<{ type: string; function: Function; }>,
             temperature?: number,
             maxTokens?: number,
             topP?: number,
@@ -154,7 +155,7 @@ declare module '@mistralai/mistralai' {
         chat(options: {
             model: string;
             messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
-            tools?: Array<{ type: string; function:Function; }>; 
+            tools?: Array<{ type: string; function: Function; }>;
             temperature?: number;
             maxTokens?: number;
             topP?: number;
@@ -165,13 +166,13 @@ declare module '@mistralai/mistralai' {
             safeMode?: boolean;
             safePrompt?: boolean;
             toolChoice?: ToolChoice;
-            responseFormat?: ResponseFormat; 
+            responseFormat?: ResponseFormat;
         }): Promise<ChatCompletionResponse>;
 
         chatStream(options: {
             model: string;
             messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
-            tools?: Array<{ type: string; function:Function; }>;
+            tools?: Array<{ type: string; function: Function; }>;
             temperature?: number;
             maxTokens?: number;
             topP?: number;
