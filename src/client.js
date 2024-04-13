@@ -4,22 +4,24 @@ const VERSION = '0.0.3';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
+let mistralFetch;
+
 /**
  * Initialize fetch
  * @return {Promise<void>}
  */
 async function initializeFetch() {
-  if (typeof window === 'undefined' ||
+  if (typeof window === 'undefined' &&
     typeof globalThis.fetch === 'undefined') {
     const nodeFetch = await import('node-fetch');
-    fetch = nodeFetch.default;
+    mistralFetch = nodeFetch.default;
     isNode = true;
   } else {
-    fetch = globalThis.fetch;
+    mistralFetch = globalThis.fetch;
   }
 }
 
-initializeFetch();
+await initializeFetch();
 
 /**
  * MistralAPIError
@@ -90,7 +92,7 @@ class MistralClient {
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
-        const response = await fetch(url, options);
+        const response = await mistralFetch(url, options);
 
         if (response.ok) {
           if (request?.stream) {
