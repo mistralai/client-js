@@ -12,6 +12,8 @@ You can install the library in your project using:
 
 ## Usage
 
+You can watch a free course on using the Mistral JavaScript client [here.](https://scrimba.com/links/mistral)
+
 ### Set up
 
 ```typescript
