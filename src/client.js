@@ -9,17 +9,19 @@ const ENDPOINT = 'https://api.mistral.ai';
  * @return {Promise<void>}
  */
 async function initializeFetch() {
-  if (typeof window === 'undefined' ||
-    typeof globalThis.fetch === 'undefined') {
-    const nodeFetch = await import('node-fetch');
-    fetch = nodeFetch.default;
+  if (typeof window === 'undefined') {
     isNode = true;
+  }
+
+  if (typeof globalThis.fetch === 'undefined') {
+    const nodeFetch = await import('node-fetch');
+    globalThis.mistralFetch = nodeFetch.default;
   } else {
-    fetch = globalThis.fetch;
+    globalThis.mistralFetch = globalThis.fetch;
   }
 }
 
-initializeFetch();
+await initializeFetch();
 
 /**
  * MistralAPIError
@@ -90,7 +92,7 @@ class MistralClient {
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
-        const response = await fetch(url, options);
+        const response = await globalThis.mistralFetch(url, options);
 
         if (response.ok) {
           if (request?.stream) {
