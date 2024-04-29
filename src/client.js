@@ -88,7 +88,7 @@ class MistralClient {
 
         if (response.ok) {
           if (request?.stream) {
-            // When using node-fetch or test mocks getReader is not defined
+            // When using node-fetch or test mocks, getReader is not defined
             if (typeof response.body.getReader === 'undefined') {
               return response.body;
             } else {
