@@ -1,28 +1,14 @@
-let isNode = false;
-
-// initializeFetch() will populate this variable with a fetch implementation
-let fetch;
-
 const VERSION = '0.0.3';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
-/**
- * Initialize fetch
- * @return {Promise<void>}
- */
-async function initializeFetch() {
-  if (typeof window === 'undefined' ||
-    typeof globalThis.fetch === 'undefined') {
-    const nodeFetch = await import('node-fetch');
-    fetch = nodeFetch.default;
-    isNode = true;
-  } else {
-    fetch = globalThis.fetch;
-  }
-}
+const isNode = typeof process !== 'undefined' &&
+  process.versions != null &&
+  process.versions.node != null;
+const haveNativeFetch = typeof globalThis.fetch !== 'undefined';
 
-initializeFetch();
+const configuredFetch = isNode && !haveNativeFetch ?
+  (await import('node-fetch')).default : globalThis.fetch;
 
 /**
  * MistralAPIError
@@ -71,6 +57,16 @@ class MistralClient {
   }
 
   /**
+   * @return {Promise}
+   * @private
+   * @param {...*} args - fetch args
+   * hook point for non-global fetch override
+   */
+  async _fetch(...args) {
+    return configuredFetch(...args);
+  }
+
+  /**
    *
    * @param {*} method
    * @param {*} path
@@ -93,11 +89,13 @@ class MistralClient {
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
-        const response = await fetch(url, options);
+        const response = await this._fetch(url, options);
 
         if (response.ok) {
           if (request?.stream) {
-            if (isNode) {
+            if (isNode && !haveNativeFetch ||
+              // The test mocks do not return a body with getReader
+              typeof response.body.getReader === 'undefined') {
               return response.body;
             } else {
               const reader = response.body.getReader();
