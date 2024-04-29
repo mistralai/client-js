@@ -2,13 +2,8 @@ const VERSION = '0.0.3';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
-const isNode = typeof process !== 'undefined' &&
-  process.versions != null &&
-  process.versions.node != null;
-const haveNativeFetch = typeof globalThis.fetch !== 'undefined';
-
-const configuredFetch = isNode && !haveNativeFetch ?
-  (await import('node-fetch')).default : globalThis.fetch;
+const configuredFetch = globalThis.fetch ??
+  (await import('node-fetch')).default;
 
 /**
  * MistralAPIError
@@ -93,9 +88,8 @@ class MistralClient {
 
         if (response.ok) {
           if (request?.stream) {
-            if (isNode && !haveNativeFetch ||
-              // The test mocks do not return a body with getReader
-              typeof response.body.getReader === 'undefined') {
+            // When using node-fetch or test mocks getReader is not defined
+            if (typeof response.body.getReader === 'undefined') {
               return response.body;
             } else {
               const reader = response.body.getReader();
