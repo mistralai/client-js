@@ -1,25 +1,11 @@
-let isNode = false;
-
 const VERSION = '0.0.3';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
-/**
- * Initialize fetch
- * @return {Promise<void>}
- */
-async function initializeFetch() {
-  if (typeof window === 'undefined' ||
-    typeof globalThis.fetch === 'undefined') {
-    const nodeFetch = await import('node-fetch');
-    fetch = nodeFetch.default;
-    isNode = true;
-  } else {
-    fetch = globalThis.fetch;
-  }
-}
-
-initializeFetch();
+// We can't use a top level await if eventually this is to be converted
+// to typescript and compiled to commonjs, or similarly using babel.
+const configuredFetch = Promise.resolve(
+  globalThis.fetch ?? import('node-fetch').then((m) => m.default));
 
 /**
  * MistralAPIError
@@ -68,6 +54,17 @@ class MistralClient {
   }
 
   /**
+   * @return {Promise}
+   * @private
+   * @param {...*} args - fetch args
+   * hook point for non-global fetch override
+   */
+  async _fetch(...args) {
+    const fetchFunc = await configuredFetch;
+    return fetchFunc(...args);
+  }
+
+  /**
    *
    * @param {*} method
    * @param {*} path
@@ -90,11 +87,12 @@ class MistralClient {
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
-        const response = await fetch(url, options);
+        const response = await this._fetch(url, options);
 
         if (response.ok) {
           if (request?.stream) {
-            if (isNode) {
+            // When using node-fetch or test mocks, getReader is not defined
+            if (typeof response.body.getReader === 'undefined') {
               return response.body;
             } else {
               const reader = response.body.getReader();
