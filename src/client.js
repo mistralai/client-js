@@ -2,8 +2,10 @@ const VERSION = '0.0.3';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
-const configuredFetch = globalThis.fetch ??
-  (await import('node-fetch')).default;
+// We can't use a top level await if eventually this is to be converted
+// to typescript and compiled to commonjs, or similarly using babel.
+const configuredFetch = Promise.resolve(
+  globalThis.fetch ?? import('node-fetch').then((m) => m.default));
 
 /**
  * MistralAPIError
@@ -58,7 +60,8 @@ class MistralClient {
    * hook point for non-global fetch override
    */
   async _fetch(...args) {
-    return configuredFetch(...args);
+    const fetchFunc = await configuredFetch;
+    return fetchFunc(...args);
   }
 
   /**
