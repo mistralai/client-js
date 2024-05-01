@@ -69,9 +69,10 @@ class MistralClient {
    * @param {*} method
    * @param {*} path
    * @param {*} request
+   * @param {*} signal
    * @return {Promise<*>}
    */
-  _request = async function(method, path, request) {
+  _request = async function(method, path, request, signal) {
     const url = `${this.endpoint}/${path}`;
     const options = {
       method: method,
@@ -82,7 +83,7 @@ class MistralClient {
         'Authorization': `Bearer ${this.apiKey}`,
       },
       body: method !== 'get' ? JSON.stringify(request) : null,
-      timeout: this.timeout * 1000,
+      signal: signal ?? AbortSignal.timeout(this.timeout * 1000),
     };
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
@@ -221,6 +222,8 @@ class MistralClient {
    * @param {*} safePrompt whether to use safe mode, e.g. true
    * @param {*} toolChoice the tool to use, e.g. 'auto'
    * @param {*} responseFormat the format of the response, e.g. 'json_format'
+   * @param {*} [signal=AbortSignal.timeout(...)] -
+   *        An optional AbortSignal instance to control the operation.
    * @return {Promise<Object>}
    */
   chat = async function({
@@ -233,6 +236,7 @@ class MistralClient {
     randomSeed,
     safeMode,
     safePrompt,
+    signal,
     toolChoice,
     responseFormat,
   }) {
@@ -254,6 +258,7 @@ class MistralClient {
       'post',
       'v1/chat/completions',
       request,
+      signal,
     );
     return response;
   };
@@ -272,6 +277,8 @@ class MistralClient {
    * @param {*} safePrompt whether to use safe mode, e.g. true
    * @param {*} toolChoice the tool to use, e.g. 'auto'
    * @param {*} responseFormat the format of the response, e.g. 'json_format'
+   * @param {*} [signal=AbortSignal.timeout(...)] -
+   *        An optional AbortSignal instance to control the operation.
    * @return {Promise<Object>}
    */
   chatStream = async function* ({
@@ -284,6 +291,7 @@ class MistralClient {
     randomSeed,
     safeMode,
     safePrompt,
+    signal,
     toolChoice,
     responseFormat,
   }) {
@@ -305,6 +313,7 @@ class MistralClient {
       'post',
       'v1/chat/completions',
       request,
+      signal,
     );
 
     let buffer = '';
