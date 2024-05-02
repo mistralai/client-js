@@ -246,8 +246,8 @@ class MistralClient {
    * @param {*} safePrompt whether to use safe mode, e.g. true
    * @param {*} toolChoice the tool to use, e.g. 'auto'
    * @param {*} responseFormat the format of the response, e.g. 'json_format'
-   * @param {*} [signal=AbortSignal.timeout(...)] -
-   *        An optional AbortSignal instance to control the operation.
+   * @param {*} [signal] - optional AbortSignal instance to control request
+   *            The signal will be combined with default timeout signal
    * @return {Promise<Object>}
    */
   chat = async function({
@@ -301,8 +301,8 @@ class MistralClient {
    * @param {*} safePrompt whether to use safe mode, e.g. true
    * @param {*} toolChoice the tool to use, e.g. 'auto'
    * @param {*} responseFormat the format of the response, e.g. 'json_format'
-   * @param {*} [signal=AbortSignal.timeout(...)] -
-   *        An optional AbortSignal instance to control the operation.
+   * @param {*} [signal] - optional AbortSignal instance to control request
+   *            The signal will be combined with default timeout signal
    * @return {Promise<Object>}
    */
   chatStream = async function* ({
