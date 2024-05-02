@@ -24,6 +24,29 @@ class MistralAPIError extends Error {
 };
 
 /**
+ * @param {Array<AbortSignal|undefined>} signals to merge
+ * @return {AbortSignal} signal which will abort when any of signals abort
+ */
+function combineSignals(signals) {
+  const controller = new AbortController();
+  signals.forEach((signal) => {
+    if (!signal) {
+      return;
+    }
+
+    signal.addEventListener('abort', () => {
+      controller.abort(signal.reason);
+    }, {once: true});
+
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+    }
+  });
+
+  return controller.signal;
+}
+
+/**
  * MistralClient
  * @return {MistralClient}
  */
@@ -83,7 +106,8 @@ class MistralClient {
         'Authorization': `Bearer ${this.apiKey}`,
       },
       body: method !== 'get' ? JSON.stringify(request) : null,
-      signal: signal ?? AbortSignal.timeout(this.timeout * 1000),
+      signal: combineSignals(
+        [AbortSignal.timeout(this.timeout * 1000), signal]),
     };
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
