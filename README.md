@@ -1,8 +1,8 @@
-This javascript client is inspired from [cohere-typescript](https://github.com/cohere-ai/cohere-typescript)
+This JavaScript client is inspired from [cohere-typescript](https://github.com/cohere-ai/cohere-typescript)
 
-# Mistral Javascript Client
+# Mistral JavaScript Client
 
-You can use the Mistral Javascript client to interact with the Mistral AI API.
+You can use the Mistral JavaScript client to interact with the Mistral AI API.
 
 ## Installing
 
@@ -11,6 +11,8 @@ You can install the library in your project using:
 `npm install @mistralai/mistralai`
 
 ## Usage
+
+You can watch a free course on using the Mistral JavaScript client [here.](https://scrimba.com/links/mistral)
 
 ### Set up
 

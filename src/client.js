@@ -1,25 +1,11 @@
-let isNode = false;
-
 const VERSION = '0.0.3';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
-/**
- * Initialize fetch
- * @return {Promise<void>}
- */
-async function initializeFetch() {
-  if (typeof window === 'undefined' ||
-    typeof globalThis.fetch === 'undefined') {
-    const nodeFetch = await import('node-fetch');
-    fetch = nodeFetch.default;
-    isNode = true;
-  } else {
-    fetch = globalThis.fetch;
-  }
-}
-
-initializeFetch();
+// We can't use a top level await if eventually this is to be converted
+// to typescript and compiled to commonjs, or similarly using babel.
+const configuredFetch = Promise.resolve(
+  globalThis.fetch ?? import('node-fetch').then((m) => m.default));
 
 /**
  * MistralAPIError
@@ -36,6 +22,29 @@ class MistralAPIError extends Error {
     this.name = 'MistralAPIError';
   }
 };
+
+/**
+ * @param {Array<AbortSignal|undefined>} signals to merge
+ * @return {AbortSignal} signal which will abort when any of signals abort
+ */
+function combineSignals(signals) {
+  const controller = new AbortController();
+  signals.forEach((signal) => {
+    if (!signal) {
+      return;
+    }
+
+    signal.addEventListener('abort', () => {
+      controller.abort(signal.reason);
+    }, {once: true});
+
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+    }
+  });
+
+  return controller.signal;
+}
 
 /**
  * MistralClient
@@ -68,13 +77,25 @@ class MistralClient {
   }
 
   /**
+   * @return {Promise}
+   * @private
+   * @param {...*} args - fetch args
+   * hook point for non-global fetch override
+   */
+  async _fetch(...args) {
+    const fetchFunc = await configuredFetch;
+    return fetchFunc(...args);
+  }
+
+  /**
    *
    * @param {*} method
    * @param {*} path
    * @param {*} request
+   * @param {*} signal
    * @return {Promise<*>}
    */
-  _request = async function(method, path, request) {
+  _request = async function(method, path, request, signal) {
     const url = `${this.endpoint}/${path}`;
     const options = {
       method: method,
@@ -85,16 +106,18 @@ class MistralClient {
         'Authorization': `Bearer ${this.apiKey}`,
       },
       body: method !== 'get' ? JSON.stringify(request) : null,
-      timeout: this.timeout * 1000,
+      signal: combineSignals(
+        [AbortSignal.timeout(this.timeout * 1000), signal]),
     };
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
-        const response = await fetch(url, options);
+        const response = await this._fetch(url, options);
 
         if (response.ok) {
           if (request?.stream) {
-            if (isNode) {
+            // When using node-fetch or test mocks, getReader is not defined
+            if (typeof response.body.getReader === 'undefined') {
               return response.body;
             } else {
               const reader = response.body.getReader();
@@ -210,19 +233,30 @@ class MistralClient {
   };
 
   /**
-   * A chat endpoint without streaming
-   * @param {*} model the name of the model to chat with, e.g. mistral-tiny
-   * @param {*} messages an array of messages to chat with, e.g.
-   * [{role: 'user', content: 'What is the best French cheese?'}]
-   * @param {*} tools  a list of tools to use.
-   * @param {*} temperature the temperature to use for sampling, e.g. 0.5
-   * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
-   * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
-   * @param {*} randomSeed the random seed to use for sampling, e.g. 42
-   * @param {*} safeMode deprecated use safePrompt instead
-   * @param {*} safePrompt whether to use safe mode, e.g. true
-   * @param {*} toolChoice the tool to use, e.g. 'auto'
-   * @param {*} responseFormat the format of the response, e.g. 'json_format'
+   * A chat endpoint without streaming.
+   *
+   * @param {Object} data - The main chat configuration.
+   * @param {*} data.model - the name of the model to chat with,
+   *                         e.g. mistral-tiny
+   * @param {*} data.messages - an array of messages to chat with, e.g.
+   *                            [{role: 'user', content: 'What is the best
+   *                            French cheese?'}]
+   * @param {*} data.tools - a list of tools to use.
+   * @param {*} data.temperature - the temperature to use for sampling, e.g. 0.5
+   * @param {*} data.maxTokens - the maximum number of tokens to generate,
+   *                             e.g. 100
+   * @param {*} data.topP - the cumulative probability of tokens to generate,
+   *                        e.g. 0.9
+   * @param {*} data.randomSeed - the random seed to use for sampling, e.g. 42
+   * @param {*} data.safeMode - deprecated use safePrompt instead
+   * @param {*} data.safePrompt - whether to use safe mode, e.g. true
+   * @param {*} data.toolChoice - the tool to use, e.g. 'auto'
+   * @param {*} data.responseFormat - the format of the response,
+   *                                  e.g. 'json_format'
+   * @param {Object} options - Additional operational options.
+   * @param {*} [options.signal] - optional AbortSignal instance to control
+   *                               request The signal will be combined with
+   *                               default timeout signal
    * @return {Promise<Object>}
    */
   chat = async function({
@@ -237,7 +271,7 @@ class MistralClient {
     safePrompt,
     toolChoice,
     responseFormat,
-  }) {
+  }, {signal} = {}) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -256,24 +290,36 @@ class MistralClient {
       'post',
       'v1/chat/completions',
       request,
+      signal,
     );
     return response;
   };
 
   /**
    * A chat endpoint that streams responses.
-   * @param {*} model the name of the model to chat with, e.g. mistral-tiny
-   * @param {*} messages an array of messages to chat with, e.g.
-   * [{role: 'user', content: 'What is the best French cheese?'}]
-   * @param {*} tools  a list of tools to use.
-   * @param {*} temperature the temperature to use for sampling, e.g. 0.5
-   * @param {*} maxTokens the maximum number of tokens to generate, e.g. 100
-   * @param {*} topP the cumulative probability of tokens to generate, e.g. 0.9
-   * @param {*} randomSeed the random seed to use for sampling, e.g. 42
-   * @param {*} safeMode deprecated use safePrompt instead
-   * @param {*} safePrompt whether to use safe mode, e.g. true
-   * @param {*} toolChoice the tool to use, e.g. 'auto'
-   * @param {*} responseFormat the format of the response, e.g. 'json_format'
+   *
+   * @param {Object} data - The main chat configuration.
+   * @param {*} data.model - the name of the model to chat with,
+   *                         e.g. mistral-tiny
+   * @param {*} data.messages - an array of messages to chat with, e.g.
+   *                            [{role: 'user', content: 'What is the best
+   *                            French cheese?'}]
+   * @param {*} data.tools - a list of tools to use.
+   * @param {*} data.temperature - the temperature to use for sampling, e.g. 0.5
+   * @param {*} data.maxTokens - the maximum number of tokens to generate,
+   *                             e.g. 100
+   * @param {*} data.topP - the cumulative probability of tokens to generate,
+   *                        e.g. 0.9
+   * @param {*} data.randomSeed - the random seed to use for sampling, e.g. 42
+   * @param {*} data.safeMode - deprecated use safePrompt instead
+   * @param {*} data.safePrompt - whether to use safe mode, e.g. true
+   * @param {*} data.toolChoice - the tool to use, e.g. 'auto'
+   * @param {*} data.responseFormat - the format of the response,
+   *                                  e.g. 'json_format'
+   * @param {Object} options - Additional operational options.
+   * @param {*} [options.signal] - optional AbortSignal instance to control
+   *                               request The signal will be combined with
+   *                               default timeout signal
    * @return {Promise<Object>}
    */
   chatStream = async function* ({
@@ -288,7 +334,7 @@ class MistralClient {
     safePrompt,
     toolChoice,
     responseFormat,
-  }) {
+  }, {signal} = {}) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -307,6 +353,7 @@ class MistralClient {
       'post',
       'v1/chat/completions',
       request,
+      signal,
     );
 
     let buffer = '';
