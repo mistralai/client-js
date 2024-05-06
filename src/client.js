@@ -271,7 +271,7 @@ class MistralClient {
     safePrompt,
     toolChoice,
     responseFormat,
-  }, {signal}) {
+  }, {signal} = {}) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -334,7 +334,7 @@ class MistralClient {
     safePrompt,
     toolChoice,
     responseFormat,
-  }, {signal}) {
+  }, {signal} = {}) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
