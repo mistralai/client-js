@@ -34,11 +34,6 @@ export interface Function {
   parameters: object;
 }
 
-// TODO: this is not actually used, but would technically be a break change to remove
-export enum ToolType {
-  function = 'function',
-}
-
 export interface FunctionCall {
   name: string;
   arguments: string;
@@ -47,16 +42,6 @@ export interface FunctionCall {
 export interface ToolCalls {
   id: string;
   function: FunctionCall;
-}
-
-export enum ResponseFormats {
-  json_object = 'json_object',
-}
-
-export enum ToolChoice {
-  auto = 'auto',
-  any = 'any',
-  none = 'none',
 }
 
 export interface ResponseFormat {
@@ -123,8 +108,6 @@ export interface EmbeddingResponse {
 
 export interface Message {
   role: string;
-  // TODO: this is not specified at https://docs.mistral.ai/redocusaurus/plugin-redoc-0.yaml
-  name?: string,
   content: string | string[]
 }
 
