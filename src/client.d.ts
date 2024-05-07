@@ -45,7 +45,7 @@ export interface ToolCalls {
 }
 
 export interface ResponseFormat {
-  type: ResponseFormats | 'json_object';
+  type: 'json_object';
 }
 
 export interface TokenUsage {
@@ -129,7 +129,7 @@ export interface ChatRequest {
    */
   safeMode?: boolean;
   safePrompt?: boolean;
-  toolChoice?: ToolChoice | 'auto' | 'any' | 'none';
+  toolChoice?: 'auto' | 'any' | 'none';
   responseFormat?: ResponseFormat;
 }
 
