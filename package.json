@@ -4,13 +4,14 @@
   "description": "",
   "author": "bam4d@mistral.ai",
   "license": "ISC",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsup",
     "lint": "./node_modules/.bin/eslint .",
-    "test": "npm run build && node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "npm run build && node node_modules/.bin/jest"
   },
   "jest": {
     "testPathIgnorePatterns": [
