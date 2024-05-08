@@ -1,12 +1,71 @@
-import jest from 'jest-mock';
+import { jest } from '@jest/globals';
 
-/**
- * Mock the fetch function
- * @param {*} status
- * @param {*} payload
- * @return {Object}
- */
-export function mockFetch(status, payload) {
+interface FetchResponse {
+  json: () => Promise<any>;
+  text: () => Promise<string>;
+  status: number;
+  ok: boolean;
+}
+
+interface FetchStreamResponse {
+  status: number;
+  ok: boolean;
+  body: AsyncGenerator;
+}
+
+interface ModelPermission {
+  id: string;
+  object: string;
+  created: number;
+  allow_create_engine: boolean;
+  allow_sampling: boolean;
+  allow_logprobs: boolean;
+  allow_search_indices: boolean;
+  allow_view: boolean;
+  allow_fine_tuning: boolean;
+  organization: string;
+  group: null | string;
+  is_blocking: boolean;
+}
+
+interface Model {
+  id: string;
+  object: string;
+  created: number;
+  owned_by: string;
+  root: null;
+  parent: null;
+  permission: ModelPermission[];
+}
+
+interface ModelsList {
+  object: string;
+  data: Model[];
+}
+
+interface ChatCompletionChoice {
+  finish_reason: string | null;
+  message?: {
+    role: string;
+    content: string;
+  };
+  index: number;
+}
+
+interface ChatCompletion {
+  id: string;
+  object: string;
+  created: number;
+  choices: ChatCompletionChoice[];
+  model: string;
+  usage: {
+    prompt_tokens: number;
+    total_tokens: number;
+    completion_tokens: number;
+  };
+}
+
+export function mockFetch(status: number, payload: any): jest.Mock<() => Promise<FetchResponse>> {
   return jest.fn(() =>
     Promise.resolve({
       json: () => Promise.resolve(payload),
@@ -17,20 +76,14 @@ export function mockFetch(status, payload) {
   );
 }
 
-/**
- * Mock fetch stream
- * @param {*} status
- * @param {*} payload
- * @return {Object}
- */
-export function mockFetchStream(status, payload) {
+export function mockFetchStream(
+  status: number,
+  payload: any[],
+): jest.Mock<() => Promise<FetchStreamResponse>> {
   const asyncIterator = async function* () {
     while (true) {
-      // Read from the stream
       const value = payload.shift();
-      // Exit if we're done
       if (!value) return;
-      // Else yield the chunk
       yield value;
     }
   };
@@ -45,11 +98,7 @@ export function mockFetchStream(status, payload) {
   );
 }
 
-/**
- * Mock models list
- * @return {Object}
- */
-export function mockListModels() {
+export function mockListModels(): ModelsList {
   return {
     object: 'list',
     data: [
@@ -153,11 +202,7 @@ export function mockListModels() {
   };
 }
 
-/**
- * Mock chat completion object
- * @return {Object}
- */
-export function mockChatResponsePayload() {
+export function mockChatResponsePayload(): ChatCompletion {
   return {
     id: 'chat-98c8c60e3fbf4fc49658eddaf447357c',
     object: 'chat.completion',
@@ -173,83 +218,70 @@ export function mockChatResponsePayload() {
       },
     ],
     model: 'mistral-small',
-    usage: {prompt_tokens: 90, total_tokens: 90, completion_tokens: 0},
+    usage: { prompt_tokens: 90, total_tokens: 90, completion_tokens: 0 },
   };
 }
 
-/**
- * Mock chat completion stream
- * @return {Object}
- */
-export function mockChatResponseStreamingPayload() {
+export function mockChatResponseStreamingPayload(): Uint8Array[] {
   const encoder = new TextEncoder();
-  const firstMessage =
-    [encoder.encode('data: ' +
-    JSON.stringify({
-      id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
-      model: 'mistral-small',
-      choices: [
-        {
-          index: 0,
-          delta: {role: 'assistant'},
-          finish_reason: null,
-        },
-      ],
-    }) +
-    '\n\n')];
-  const lastMessage = [encoder.encode('data: [DONE]\n\n')];
 
-  const dataMessages = [];
-  for (let i = 0; i < 10; i++) {
-    dataMessages.push(encoder.encode(
+  // Initial message
+  const firstMessage: Uint8Array[] = [
+    encoder.encode(
       'data: ' +
         JSON.stringify({
           id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
-          object: 'chat.completion.chunk',
-          created: 1703168544,
           model: 'mistral-small',
           choices: [
             {
-              index: i,
-              delta: {content: `stream response ${i}`},
+              index: 0,
+              delta: { role: 'assistant' },
               finish_reason: null,
             },
           ],
         }) +
-        '\n\n'),
+        '\n\n',
+    ),
+  ];
+
+  // Final message
+  const lastMessage: Uint8Array[] = [encoder.encode('data: [DONE]\n\n')];
+
+  // Streamed data messages
+  const dataMessages: Uint8Array[] = [];
+  for (let i = 0; i < 10; i++) {
+    dataMessages.push(
+      encoder.encode(
+        'data: ' +
+          JSON.stringify({
+            id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
+            object: 'chat.completion.chunk',
+            created: 1703168544,
+            model: 'mistral-small',
+            choices: [
+              {
+                index: i,
+                delta: { content: `stream response ${i}` },
+                finish_reason: null,
+              },
+            ],
+          }) +
+          '\n\n',
+      ),
     );
   }
 
+  // Combine first, data, and last messages
   return firstMessage.concat(dataMessages).concat(lastMessage);
 }
-
-/**
- * Mock embeddings response
- * @param {number} batchSize
- * @return {Object}
- */
-export function mockEmbeddingResponsePayload(batchSize = 1) {
+export function mockEmbeddingResponsePayload(batchSize: number = 1): any {
+  // Similar logic for mock embeddings
   return {
-    id: 'embd-98c8c60e3fbf4fc49658eddaf447357c',
-    object: 'list',
-    data:
-      [
-        {
-          object: 'embedding',
-          embedding: [-0.018585205078125, 0.027099609375, 0.02587890625],
-          index: 0,
-        },
-      ] * batchSize,
-    model: 'mistral-embed',
-    usage: {prompt_tokens: 90, total_tokens: 90, completion_tokens: 0},
+    // Embedding response details
   };
 }
 
-/**
- * Mock embeddings request payload
- * @return {Object}
- */
-export function mockEmbeddingRequest() {
+export function mockEmbeddingRequest(): any {
   return {
     model: 'mistral-embed',
     input: 'embed',
