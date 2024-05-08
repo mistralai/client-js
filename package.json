@@ -4,9 +4,11 @@
   "description": "",
   "author": "bam4d@mistral.ai",
   "license": "ISC",
-  "type": "module",
-  "main": "src/client.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "scripts": {
+    "build": "tsup",
     "lint": "./node_modules/.bin/eslint .",
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
@@ -19,7 +21,6 @@
     "type": "git",
     "url": "https://github.com/mistralai/client-js"
   },
-  "types": "src/client.d.ts",
   "dependencies": {
     "node-fetch": "^2.6.7"
   },
