@@ -48,6 +48,13 @@ jobs:
         run: |
           npm run test
 
+        # Build TypeScript Examples
+      - name: Build typescript examples
+        run: |
+          cd examples/typescript
+          npm install
+          npx tsc --build --verbose tsconfig.json
+
   publish:
     needs: lint_and_test
     runs-on: ubuntu-latest

@@ -4,9 +4,15 @@ const apiKey = process.env.MISTRAL_API_KEY;
 
 const client = new MistralClient(apiKey);
 
+const responseInterface = '{"best": string, "reasoning": string}';
 const chatStreamResponse = client.chatStream({
-  model: 'mistral-tiny',
-  messages: [{role: 'user', content: 'What is the best French cheese?'}],
+  model: 'open-mistral-7b',
+  responseFormat: {type: 'json_object'},
+  messages: [{
+    role: 'user', content: `
+    What is the best French cheese?
+    Answer in ${responseInterface} format`,
+  }],
 });
 
 console.log('Chat Stream:');

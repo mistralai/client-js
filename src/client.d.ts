@@ -35,34 +35,18 @@ declare module '@mistralai/mistralai' {
         parameters: object;
     }
 
-    export enum ToolType {
-        function = 'function',
-    }
-
     export interface FunctionCall {
         name: string;
         arguments: string;
     }
 
     export interface ToolCalls {
-        id: 'null';
-        type: ToolType = ToolType.function;
+        id: string;
         function: FunctionCall;
     }
 
-    export enum ResponseFormats {
-        text = 'text',
-        json_object = 'json_object',
-    }
-
-    export enum ToolChoice {
-        auto = 'auto',
-        any = 'any',
-        none = 'none',
-    }
-
     export interface ResponseFormat {
-        type: ResponseFormats = ResponseFormats.text;
+        type: 'json_object';
     }
 
     export interface TokenUsage {
@@ -76,6 +60,7 @@ declare module '@mistralai/mistralai' {
         message: {
             role: string;
             content: string;
+            tool_calls: null | ToolCalls[];
         };
         finish_reason: string;
     }
@@ -105,6 +90,7 @@ declare module '@mistralai/mistralai' {
         created: number;
         model: string;
         choices: ChatCompletionResponseChunkChoice[];
+        usage: TokenUsage | null;
     }
 
     export interface Embedding {
@@ -121,68 +107,50 @@ declare module '@mistralai/mistralai' {
         usage: TokenUsage;
     }
 
+    export interface Message {
+        role: string;
+        content: string | string[]
+    }
+
+    export interface Tool {
+        type: 'function';
+        function: Function;
+    }
+
+    export interface ChatRequest {
+        model: string;
+        messages: Array<Message>;
+        tools?: Array<Tool>;
+        temperature?: number;
+        maxTokens?: number;
+        topP?: number;
+        randomSeed?: number;
+        /**
+         * @deprecated use safePrompt instead
+         */
+        safeMode?: boolean;
+        safePrompt?: boolean;
+        toolChoice?: 'auto' | 'any' | 'none';
+        responseFormat?: ResponseFormat;
+    }
+
+    export interface ChatRequestOptions {
+        signal?: AbortSignal
+    }
+
     class MistralClient {
-        constructor(apiKey?: string, endpoint?: string);
+        apiKey: string
+        endpoint: string
+        maxRetries: number
+        timeout: number
 
-        private _request(
-            method: string,
-            path: string,
-            request: unknown
-        ): Promise<unknown>;
-
-        private _makeChatCompletionRequest(
-            model: string,
-            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>,
-            tools?: Array<{ type: string; function:Function; }>, 
-            temperature?: number,
-            maxTokens?: number,
-            topP?: number,
-            randomSeed?: number,
-            stream?: boolean,
-            /**
-             * @deprecated use safePrompt instead
-             */
-            safeMode?: boolean,
-            safePrompt?: boolean,
-            toolChoice?: ToolChoice,
-            responseFormat?: ResponseFormat
-        ): object;
+        constructor(apiKey?: string, endpoint?: string, maxRetries?: number, timeout?: number);
 
         listModels(): Promise<ListModelsResponse>;
 
-        chat(options: {
-            model: string;
-            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
-            tools?: Array<{ type: string; function:Function; }>; 
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            randomSeed?: number;
-            /**
-             * @deprecated use safePrompt instead
-             */
-            safeMode?: boolean;
-            safePrompt?: boolean;
-            toolChoice?: ToolChoice;
-            responseFormat?: ResponseFormat; 
-        }): Promise<ChatCompletionResponse>;
+        chat(request: ChatRequest, options?: ChatRequestOptions): Promise<ChatCompletionResponse>;
 
-        chatStream(options: {
-            model: string;
-            messages: Array<{ role: string; name?: string, content: string | string[], tool_calls?: ToolCalls[]; }>;
-            tools?: Array<{ type: string; function:Function; }>;
-            temperature?: number;
-            maxTokens?: number;
-            topP?: number;
-            randomSeed?: number;
-            /**
-             * @deprecated use safePrompt instead
-             */
-            safeMode?: boolean;
-            safePrompt?: boolean;
-            toolChoice?: ToolChoice;
-            responseFormat?: ResponseFormat;
-        }): AsyncGenerator<ChatCompletionResponseChunk, void, unknown>;
+        chatStream(request: ChatRequest, options?: ChatRequestOptions): AsyncGenerator<ChatCompletionResponseChunk, void>;
 
         embeddings(options: {
             model: string;

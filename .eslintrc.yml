@@ -4,6 +4,7 @@ env:
 extends: google
 ignorePatterns:
   - examples/chat-react/
+  - src/client.d.ts
 parserOptions:
   ecmaVersion: latest
   sourceType: module
