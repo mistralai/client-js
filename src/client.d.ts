@@ -138,7 +138,7 @@ declare module '@mistralai/mistralai' {
         signal?: AbortSignal
     }
 
-    declare class MistralClient {
+    class MistralClient {
         apiKey: string
         endpoint: string
         maxRetries: number
