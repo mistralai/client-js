@@ -4,7 +4,7 @@ const apiKey = process.env.MISTRAL_API_KEY;
 
 const client = new MistralClient(apiKey);
 
-const chatStreamResponse = await client.chatStream({
+const chatStreamResponse = client.chatStream({
   model: 'mistral-tiny',
   messages: [{role: 'user', content: 'What is the best French cheese?'}],
 });

@@ -5,7 +5,7 @@ const apiKey = process.env.MISTRAL_API_KEY;
 const client = new MistralClient(apiKey);
 
 const responseInterface = '{"best": string, "reasoning": string}';
-const chatStreamResponse = await client.chatStream({
+const chatStreamResponse = client.chatStream({
   model: 'open-mistral-7b',
   responseFormat: {type: 'json_object'},
   messages: [{
