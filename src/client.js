@@ -1,11 +1,12 @@
-const VERSION = '0.0.3';
+const VERSION = '0.2.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
 // We can't use a top level await if eventually this is to be converted
 // to typescript and compiled to commonjs, or similarly using babel.
 const configuredFetch = Promise.resolve(
-  globalThis.fetch ?? import('node-fetch').then((m) => m.default));
+  globalThis.fetch ?? import('node-fetch').then((m) => m.default),
+);
 
 /**
  * MistralAPIError
@@ -21,7 +22,7 @@ class MistralAPIError extends Error {
     super(message);
     this.name = 'MistralAPIError';
   }
-};
+}
 
 /**
  * @param {Array<AbortSignal|undefined>} signals to merge
@@ -34,9 +35,13 @@ function combineSignals(signals) {
       return;
     }
 
-    signal.addEventListener('abort', () => {
-      controller.abort(signal.reason);
-    }, {once: true});
+    signal.addEventListener(
+      'abort',
+      () => {
+        controller.abort(signal.reason);
+      },
+      {once: true},
+    );
 
     if (signal.aborted) {
       controller.abort(signal.reason);
@@ -106,8 +111,10 @@ class MistralClient {
         'Authorization': `Bearer ${this.apiKey}`,
       },
       body: method !== 'get' ? JSON.stringify(request) : null,
-      signal: combineSignals(
-        [AbortSignal.timeout(this.timeout * 1000), signal]),
+      signal: combineSignals([
+        AbortSignal.timeout(this.timeout * 1000),
+        signal,
+      ]),
     };
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
@@ -149,12 +156,12 @@ class MistralClient {
           );
           // eslint-disable-next-line max-len
           await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+            setTimeout(resolve, Math.pow(2, attempts + 1) * 500),
           );
         } else {
           throw new MistralAPIError(
             `HTTP error! status: ${response.status} ` +
-            `Response: \n${await response.text()}`,
+              `Response: \n${await response.text()}`,
           );
         }
       } catch (error) {
@@ -165,7 +172,7 @@ class MistralClient {
         if (attempts === this.maxRetries - 1) throw error;
         // eslint-disable-next-line max-len
         await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, (attempts + 1)) * 500),
+          setTimeout(resolve, Math.pow(2, attempts + 1) * 500),
         );
       }
     }
@@ -204,9 +211,7 @@ class MistralClient {
   ) {
     // if modelDefault and model are undefined, throw an error
     if (!model && !this.modelDefault) {
-      throw new MistralAPIError(
-        'You must provide a model name',
-      );
+      throw new MistralAPIError('You must provide a model name');
     }
     return {
       model: model ?? this.modelDefault,
@@ -259,19 +264,22 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  chat = async function({
-    model,
-    messages,
-    tools,
-    temperature,
-    maxTokens,
-    topP,
-    randomSeed,
-    safeMode,
-    safePrompt,
-    toolChoice,
-    responseFormat,
-  }, {signal} = {}) {
+  chat = async function(
+    {
+      model,
+      messages,
+      tools,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      safeMode,
+      safePrompt,
+      toolChoice,
+      responseFormat,
+    },
+    {signal} = {},
+  ) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -322,19 +330,22 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  chatStream = async function* ({
-    model,
-    messages,
-    tools,
-    temperature,
-    maxTokens,
-    topP,
-    randomSeed,
-    safeMode,
-    safePrompt,
-    toolChoice,
-    responseFormat,
-  }, {signal} = {}) {
+  chatStream = async function* (
+    {
+      model,
+      messages,
+      tools,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      safeMode,
+      safePrompt,
+      toolChoice,
+      responseFormat,
+    },
+    {signal} = {},
+  ) {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
