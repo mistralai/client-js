@@ -74,5 +74,4 @@ jobs:
       - name: Publish
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
-          npm version ${{ github.ref_name }}
           npm publish
