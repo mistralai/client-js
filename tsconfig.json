@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "downlevelIteration": true,
+      "lib": ["DOM","es2022"],
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "noEmit": true,
+      "noImplicitAny": true,
+      "removeComments": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "target": "ES2022",
+      "outDir": "dist"
+    },
+    "exclude": ["node_modules"],
+    "include": ["src"]
+}
