@@ -29,6 +29,7 @@
     "@babel/preset-env": "^7.24.5",
     "@babel/preset-typescript": "^7.24.1",
     "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.12.10",
     "@types/node-fetch": "^2.6.11",
     "eslint": "^8.55.0",

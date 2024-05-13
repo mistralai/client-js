@@ -1,8 +1,9 @@
-import { ChatCompletionRequest, MistralChatCompletionRequest } from './utils/type';
+import { ChatCompletionRequest, ChatCompletionResponse, ChatCompletionResponseChunk, ChatRequestOptions, EmbeddingResponse, ListModelsResponse, MistralChatCompletionRequest } from './utils/type';
 import { MistralAPIError } from './utils/api-error';
 import { initializeFetch, isNode } from './utils/init-fetch';
+import { combineSignals } from './utils/helper';
 
-const VERSION = '0.0.3';
+const VERSION = '0.2.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
@@ -57,7 +58,7 @@ export default class MistralClient {
     } as MistralChatCompletionRequest;
   }
 
-  private async _request(method: string, path: string, request?: any): Promise<any> {
+  private async _request(method: string, path: string, request?: any, signal?:AbortSignal): Promise<any> {
     const url = `${this.endpoint}/${path}`;
     const options: RequestInit = {
       method,
@@ -68,7 +69,7 @@ export default class MistralClient {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: method !== 'get' ? JSON.stringify(request) : null,
-      signal: AbortSignal.timeout(this.timeout * 1000),
+      signal: signal? combineSignals([AbortSignal.timeout(this.timeout * 1000), signal]): AbortSignal.timeout(this.timeout * 1000),
     };
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
@@ -115,20 +116,18 @@ export default class MistralClient {
     throw new Error('Max retries reached');
   }
 
-  async listModels(): Promise<any> {
+  async listModels(): Promise<ListModelsResponse> {
     return await this._request('get', 'v1/models');
   }
 
-  async chat(request: ChatCompletionRequest): Promise<any> {
+  async chat(request: ChatCompletionRequest,  {signal}: ChatRequestOptions = {}): Promise<ChatCompletionResponse> {
     const mistralRequest = this._makeChatCompletionRequest(request);
-    return await this._request('post', 'v1/chat/completions', mistralRequest);
+    return await this._request('post', 'v1/chat/completions', mistralRequest,  signal,);
   }
 
-  async *chatStream(request: ChatCompletionRequest): AsyncGenerator<any, void, undefined> {
+  async *chatStream(request: ChatCompletionRequest,  {signal}: ChatRequestOptions = {}): AsyncGenerator<ChatCompletionResponseChunk, void> {
     const mistralRequest = this._makeChatCompletionRequest({ ...request, stream: true });
-    console.log('mistralRequest:', mistralRequest);
-    const response = await this._request('post', 'v1/chat/completions', mistralRequest);
-    console.log('---chatStream response:', response);
+    const response = await this._request('post', 'v1/chat/completions', mistralRequest, signal);
     let buffer = '';
     const decoder = new TextDecoder();
     for await (const chunk of response) {
@@ -147,7 +146,7 @@ export default class MistralClient {
     }
   }
 
-  async embeddings({ model, input }: { model: string; input: string }) {
+  async embeddings({ model, input }: { model: string; input: string }):Promise<EmbeddingResponse> {
     const request = {
       model: model,
       input: input,
