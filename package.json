@@ -13,12 +13,7 @@
     "build": "npm run clean && tsup",
     "lint": "./node_modules/.bin/eslint .",
     "fix": "./node_modules/.bin/eslint . --fix",
-    "test": "node node_modules/.bin/jest"
-  },
-  "jest": {
-    "testPathIgnorePatterns": [
-      "examples"
-    ]
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -41,6 +36,7 @@
     "prettier": "2.8.8",
     "rimraf": "^5.0.7",
     "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   }

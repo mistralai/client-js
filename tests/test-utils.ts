@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { ChatCompletionResponse, Embedding, EmbeddingResponse, ListModelsResponse } from "../src/utils/type"
+import { ChatCompletionResponse, Embedding, EmbeddingResponse, ListModelsResponse } from "@mistralai/mistralai/utils/type"
 
 interface FetchResponse {
   json: () => Promise<any>;

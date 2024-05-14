@@ -10,8 +10,13 @@
       "skipLibCheck": true,
       "strict": true,
       "target": "ES2022",
-      "outDir": "dist"
+      "outDir": "dist",
+      "baseUrl": "./",
+      "paths": {
+        "@mistralai/mistralai/*": ["src/*"],
+        "@mistralai/mistralai": ["src/index.ts"],
+      },
     },
     "exclude": ["node_modules"],
-    "include": ["src"]
+    "include": ["src", "tests"]
 }

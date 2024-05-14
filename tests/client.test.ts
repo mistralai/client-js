@@ -1,7 +1,7 @@
 // test/client.test.ts
 import { describe, expect } from '@jest/globals';
 
-import { MistralClient } from '../src';
+import { MistralClient } from '@mistralai/mistralai';
 import {
   mockListModels,
   mockFetch,
