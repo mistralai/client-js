@@ -12,11 +12,11 @@ const ENDPOINT = 'https://api.mistral.ai';
  * @return {MistralClient}
  */
 export default class MistralClient {
-  private apiKey: string;
-  private endpoint: string;
-  private maxRetries: number;
-  private timeout: number;
-  private modelDefault?: string;
+  public apiKey: string;
+  public endpoint: string;
+  public maxRetries: number;
+  public timeout: number;
+  public modelDefault?: string;
 
 
   constructor(apiKey = process.env.MISTRAL_API_KEY!, endpoint = ENDPOINT, maxRetries = 5, timeout = 120) {
@@ -35,7 +35,7 @@ export default class MistralClient {
    * @param init 
    * @returns 
    */
-  public async _fetch(input: string | Request, init?: RequestInit){
+  private async _fetch(input: string | Request, init?: RequestInit){
     const fetchFunc = await configuredFetch;
     return fetchFunc(input, init);
   }
@@ -108,7 +108,7 @@ export default class MistralClient {
             // When using node-fetch or test mocks, getReader is not defined
             if (typeof response.body!.getReader === 'undefined') {
               return response.body;
-            }else {
+            } else {
               const reader = response.body!.getReader();
               // Chrome does not support async iterators yet, so polyfill it
               const asyncIterator = async function* () {
@@ -131,7 +131,11 @@ export default class MistralClient {
           }
           return await response.json();
         } else if (RETRY_STATUS_CODES.includes(response.status)) {
-          console.debug(`Retrying request on response status: ${response.status}`);
+          console.debug(
+            `Retrying request on response status: ${response.status}`,
+            `Response: ${await response.text()}`,
+            `Attempt: ${attempts + 1}`,
+          );
           await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempts + 1) * 500));
         } else {
           throw new MistralAPIError(`HTTP error! status: ${response.status}`);
