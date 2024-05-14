@@ -1,12 +1,16 @@
 import { ChatCompletionRequest, ChatCompletionResponse, ChatCompletionResponseChunk, ChatRequestOptions, EmbeddingResponse, ListModelsResponse, MistralChatCompletionRequest } from './utils/type';
 import { MistralAPIError } from './utils/api-error';
-import { configuredFetch, initializeFetch, isNode } from './utils/init-fetch';
+import { configuredFetch } from './utils/init-fetch';
 import { combineSignals } from './utils/helper';
 
 const VERSION = '0.2.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
+/**
+ * MistralClient
+ * @return {MistralClient}
+ */
 export default class MistralClient {
   private apiKey: string;
   private endpoint: string;
@@ -25,11 +29,22 @@ export default class MistralClient {
     }
   }
 
+  /**
+   * hook point for non-global fetch override
+   * @param input 
+   * @param init 
+   * @returns 
+   */
   public async _fetch(input: string | Request, init?: RequestInit){
     const fetchFunc = await configuredFetch;
     return fetchFunc(input, init);
   }
 
+  /**
+   * Creates a chat completion request
+   * @param param0 
+   * @returns {MistralChatCompletionRequest}
+   */
   private _makeChatCompletionRequest({
     model,
     messages,
@@ -63,6 +78,14 @@ export default class MistralClient {
     } as MistralChatCompletionRequest;
   }
 
+  /**
+   * 
+   * @param method 
+   * @param path 
+   * @param request 
+   * @param signal 
+   * @returns 
+   */
   private async _request(method: string, path: string, request?: any, signal?:AbortSignal): Promise<any> {
     const url = `${this.endpoint}/${path}`;
     const options: RequestInit = {
@@ -122,17 +145,125 @@ export default class MistralClient {
     throw new Error('Max retries reached');
   }
 
+  /**
+   * Returns a list of the available models
+   * @returns 
+   */
   async listModels(): Promise<ListModelsResponse> {
     return await this._request('get', 'v1/models');
   }
 
-  async chat(request: ChatCompletionRequest,  {signal}: ChatRequestOptions = {}): Promise<ChatCompletionResponse> {
-    const mistralRequest = this._makeChatCompletionRequest(request);
+  /**
+   * A chat endpoint without streaming.
+   *
+   * @param {Object} data - The main chat configuration.
+   * @param {*} data.model - the name of the model to chat with,
+   *                         e.g. mistral-tiny
+   * @param {*} data.messages - an array of messages to chat with, e.g.
+   *                            [{role: 'user', content: 'What is the best
+   *                            French cheese?'}]
+   * @param {*} data.tools - a list of tools to use.
+   * @param {*} data.temperature - the temperature to use for sampling, e.g. 0.5
+   * @param {*} data.maxTokens - the maximum number of tokens to generate,
+   *                             e.g. 100
+   * @param {*} data.topP - the cumulative probability of tokens to generate,
+   *                        e.g. 0.9
+   * @param {*} data.randomSeed - the random seed to use for sampling, e.g. 42
+   * @param {*} data.safeMode - deprecated use safePrompt instead
+   * @param {*} data.safePrompt - whether to use safe mode, e.g. true
+   * @param {*} data.toolChoice - the tool to use, e.g. 'auto'
+   * @param {*} data.responseFormat - the format of the response,
+   *                                  e.g. 'json_format'
+   * @param {Object} options - Additional operational options.
+   * @param {*} [options.signal] - optional AbortSignal instance to control
+   *                               request The signal will be combined with
+   *                               default timeout signal
+   * @return {Promise<ChatCompletionResponse>}
+   */
+  async chat({
+    model,
+    messages,
+    tools,
+    temperature,
+    maxTokens,
+    topP,
+    randomSeed,
+    safeMode,
+    safePrompt,
+    toolChoice,
+    responseFormat,
+  }: ChatCompletionRequest,  {signal}: ChatRequestOptions = {}): Promise<ChatCompletionResponse> {
+    const mistralRequest = this._makeChatCompletionRequest({
+      model,
+      messages,
+      tools,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      stream:false,
+      safeMode,
+      safePrompt,
+      toolChoice,
+      responseFormat,
+    });
     return await this._request('post', 'v1/chat/completions', mistralRequest,  signal,);
   }
 
-  async *chatStream(request: ChatCompletionRequest,  {signal}: ChatRequestOptions = {}): AsyncGenerator<ChatCompletionResponseChunk, void> {
-    const mistralRequest = this._makeChatCompletionRequest({ ...request, stream: true });
+  /**
+   * A chat endpoint that streams responses.
+   *
+   * @param {Object} data - The main chat configuration.
+   * @param {*} data.model - the name of the model to chat with,
+   *                         e.g. mistral-tiny
+   * @param {*} data.messages - an array of messages to chat with, e.g.
+   *                            [{role: 'user', content: 'What is the best
+   *                            French cheese?'}]
+   * @param {*} data.tools - a list of tools to use.
+   * @param {*} data.temperature - the temperature to use for sampling, e.g. 0.5
+   * @param {*} data.maxTokens - the maximum number of tokens to generate,
+   *                             e.g. 100
+   * @param {*} data.topP - the cumulative probability of tokens to generate,
+   *                        e.g. 0.9
+   * @param {*} data.randomSeed - the random seed to use for sampling, e.g. 42
+   * @param {*} data.safeMode - deprecated use safePrompt instead
+   * @param {*} data.safePrompt - whether to use safe mode, e.g. true
+   * @param {*} data.toolChoice - the tool to use, e.g. 'auto'
+   * @param {*} data.responseFormat - the format of the response,
+   *                                  e.g. 'json_format'
+   * @param {Object} options - Additional operational options.
+   * @param {*} [options.signal] - optional AbortSignal instance to control
+   *                               request The signal will be combined with
+   *                               default timeout signal
+   * @return {AsyncGenerator<ChatCompletionResponseChunk, void>}
+   */
+  async *chatStream({
+    model,
+    messages,
+    tools,
+    temperature,
+    maxTokens,
+    topP,
+    randomSeed,
+    safeMode,
+    safePrompt,
+    toolChoice,
+    responseFormat,
+  }: ChatCompletionRequest,  {signal}: ChatRequestOptions = {}): AsyncGenerator<ChatCompletionResponseChunk, void> {
+    const mistralRequest = this._makeChatCompletionRequest({ 
+      model,
+      messages,
+      tools,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      safeMode,
+      safePrompt,
+      toolChoice,
+      responseFormat, 
+      stream: true 
+    });
     const response = await this._request('post', 'v1/chat/completions', mistralRequest, signal);
     let buffer = '';
     const decoder = new TextDecoder();
@@ -152,6 +283,13 @@ export default class MistralClient {
     }
   }
 
+  /**
+   * An embeddings endpoint that returns embeddings for a single,
+   * or batch of inputs
+   * @param {*} model The embedding model to use, e.g. mistral-embed
+   * @param {*} input The input to embed, e.g. ['What is the best French cheese?']
+   * @return {Promise<EmbeddingResponse>}
+   */
   async embeddings({ model, input }: { model: string; input: string }):Promise<EmbeddingResponse> {
     const request = {
       model: model,
