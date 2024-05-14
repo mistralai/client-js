@@ -1,6 +1,6 @@
 import { ChatCompletionRequest, ChatCompletionResponse, ChatCompletionResponseChunk, ChatRequestOptions, EmbeddingResponse, ListModelsResponse, MistralChatCompletionRequest } from './utils/type';
 import { MistralAPIError } from './utils/api-error';
-import { initializeFetch, isNode } from './utils/init-fetch';
+import { configuredFetch, initializeFetch, isNode } from './utils/init-fetch';
 import { combineSignals } from './utils/helper';
 
 const VERSION = '0.2.0';
@@ -14,6 +14,7 @@ export default class MistralClient {
   private timeout: number;
   private modelDefault?: string;
 
+
   constructor(apiKey = process.env.MISTRAL_API_KEY!, endpoint = ENDPOINT, maxRetries = 5, timeout = 120) {
     this.apiKey = apiKey;
     this.endpoint = endpoint;
@@ -22,7 +23,11 @@ export default class MistralClient {
     if (this.endpoint.includes('inference.azure.com')) {
       this.modelDefault = 'mistral';
     }
-    initializeFetch();
+  }
+
+  public async _fetch(input: string | Request, init?: RequestInit){
+    const fetchFunc = await configuredFetch;
+    return fetchFunc(input, init);
   }
 
   private _makeChatCompletionRequest({
@@ -74,12 +79,13 @@ export default class MistralClient {
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
-        const response = await fetch(url, options);
+        const response = await this._fetch(url, options);
         if (response.ok) {
           if (request?.stream) {
-            if (isNode) {
+            // When using node-fetch or test mocks, getReader is not defined
+            if (typeof response.body!.getReader === 'undefined') {
               return response.body;
-            } else {
+            }else {
               const reader = response.body!.getReader();
               // Chrome does not support async iterators yet, so polyfill it
               const asyncIterator = async function* () {

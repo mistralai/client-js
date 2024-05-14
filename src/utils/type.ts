@@ -108,7 +108,7 @@ export interface ChatCompletionResponseChoice {
   message: {
     role: string;
     content: string;
-    tool_calls: null | ToolCalls[];
+    tool_calls?: null | ToolCalls[];
   };
   finish_reason: string;
 }
