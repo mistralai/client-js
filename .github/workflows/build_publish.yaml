@@ -14,7 +14,6 @@ on:
   pull_request:
 
 jobs:
-
   lint_and_test:
     runs-on: ubuntu-latest
 
@@ -48,6 +47,13 @@ jobs:
         run: |
           npm run test
 
+        # Build TypeScript Examples
+      - name: Build typescript examples
+        run: |
+          cd examples/typescript
+          npm install
+          npx tsc --build --verbose tsconfig.json
+
   publish:
     needs: lint_and_test
     runs-on: ubuntu-latest
@@ -68,7 +74,4 @@ jobs:
       - name: Publish
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
-          npm version ${{ github.ref_name }}
-          sed -i 's/VERSION = '\''0.0.1'\''/VERSION = '\''${{ github.ref_name }}'\''/g' src/client.js
-          npm publish 
-
+          npm publish
