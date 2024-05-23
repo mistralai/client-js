@@ -1,4 +1,4 @@
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
