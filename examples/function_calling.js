@@ -114,7 +114,7 @@ response = await client.chat({
   tools: tools,
 });
 
-const toolCall = response.choices[0].message.toolCalls[0];
+const toolCall = response.choices[0].message.tool_calls[0];
 const functionName = toolCall.function.name;
 const functionParams = JSON.parse(toolCall.function.arguments);
 
