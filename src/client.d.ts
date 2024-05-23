@@ -107,10 +107,17 @@ declare module "@mistralai/mistralai" {
     usage: TokenUsage;
   }
 
-  export interface Message {
-    role: string;
-    content: string | string[];
-  }
+  export type Message =
+    | {
+        role: "system" | "user" | "assistant";
+        content: string | string[];
+      }
+    | {
+        role: "tool";
+        content: string | string[];
+        name: string;
+        tool_call_id: string;
+      };
 
   export interface Tool {
     type: "function";
