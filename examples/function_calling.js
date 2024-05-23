@@ -128,7 +128,7 @@ messages.push({
   role: 'tool',
   name: functionName,
   content: functionResult,
-  tol_call_id: toolCall.id,
+  tool_call_id: toolCall.id,
 });
 
 response = await client.chat({
