@@ -26,7 +26,7 @@ const data = {
 function retrievePaymentStatus({data, transactionId}) {
   const transactionIndex = data.transactionId.indexOf(transactionId);
   if (transactionIndex != -1) {
-    return JSON.stringify({status: data.payment_status[transactionIndex]});
+    return JSON.stringify({status: data.paymentStatus[transactionIndex]});
   } else {
     return JSON.stringify({status: 'error - transaction id not found.'});
   }
