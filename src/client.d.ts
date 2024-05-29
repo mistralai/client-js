@@ -141,6 +141,17 @@ declare module "@mistralai/mistralai" {
     responseFormat?: ResponseFormat;
   }
 
+  export interface CompletionRequest {
+    model: string;
+    prompt: string;
+    suffix?: string;
+    temperature?: number;
+    maxTokens?: number;
+    topP?: number;
+    randomSeed?: number;
+    stop?: string | string[];
+  }
+
   export interface ChatRequestOptions {
     signal?: AbortSignal;
   }
@@ -169,6 +180,17 @@ declare module "@mistralai/mistralai" {
       request: ChatRequest,
       options?: ChatRequestOptions
     ): AsyncGenerator<ChatCompletionResponseChunk, void>;
+
+    completion(
+        request: CompletionRequest,
+        options?: ChatRequestOptions
+    ): Promise<ChatCompletionResponse>;
+
+    completionStream(
+        request: CompletionRequest,
+        options?: ChatRequestOptions
+    ): AsyncGenerator<ChatCompletionResponseChunk, void>;
+
 
     embeddings(options: {
       model: string;

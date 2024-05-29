@@ -78,7 +78,7 @@ export function mockListModels() {
         ],
       },
       {
-        id: 'mistral-small',
+        id: 'mistral-small-latest',
         object: 'model',
         created: 1703186988,
         owned_by: 'mistralai',
@@ -172,7 +172,7 @@ export function mockChatResponsePayload() {
         index: 0,
       },
     ],
-    model: 'mistral-small',
+    model: 'mistral-small-latest',
     usage: {prompt_tokens: 90, total_tokens: 90, completion_tokens: 0},
   };
 }
@@ -187,7 +187,7 @@ export function mockChatResponseStreamingPayload() {
     [encoder.encode('data: ' +
     JSON.stringify({
       id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
-      model: 'mistral-small',
+      model: 'mistral-small-latest',
       choices: [
         {
           index: 0,
@@ -207,7 +207,7 @@ export function mockChatResponseStreamingPayload() {
           id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
           object: 'chat.completion.chunk',
           created: 1703168544,
-          model: 'mistral-small',
+          model: 'mistral-small-latest',
           choices: [
             {
               index: i,

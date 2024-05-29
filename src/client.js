@@ -161,7 +161,7 @@ class MistralClient {
         } else {
           throw new MistralAPIError(
             `HTTP error! status: ${response.status} ` +
-              `Response: \n${await response.text()}`,
+            `Response: \n${await response.text()}`,
           );
         }
       } catch (error) {
@@ -225,6 +225,47 @@ class MistralClient {
       safe_prompt: (safeMode || safePrompt) ?? undefined,
       tool_choice: toolChoice ?? undefined,
       response_format: responseFormat ?? undefined,
+    };
+  };
+
+  /**
+   * Creates a completion request
+   * @param {*} model
+   * @param {*} prompt
+   * @param {*} suffix
+   * @param {*} temperature
+   * @param {*} maxTokens
+   * @param {*} topP
+   * @param {*} randomSeed
+   * @param {*} stop
+   * @param {*} stream
+   * @return {Promise<Object>}
+   */
+  _makeCompletionRequest = function(
+    model,
+    prompt,
+    suffix,
+    temperature,
+    maxTokens,
+    topP,
+    randomSeed,
+    stop,
+    stream,
+  ) {
+    // if modelDefault and model are undefined, throw an error
+    if (!model && !this.modelDefault) {
+      throw new MistralAPIError('You must provide a model name');
+    }
+    return {
+      model: model ?? this.modelDefault,
+      prompt: prompt,
+      suffix: suffix ?? undefined,
+      temperature: temperature ?? undefined,
+      max_tokens: maxTokens ?? undefined,
+      top_p: topP ?? undefined,
+      random_seed: randomSeed ?? undefined,
+      stop: stop ?? undefined,
+      stream: stream ?? undefined,
     };
   };
 
@@ -400,6 +441,134 @@ class MistralClient {
     };
     const response = await this._request('post', 'v1/embeddings', request);
     return response;
+  };
+
+  /**
+   * A completion endpoint without streaming.
+   *
+   * @param {Object} data - The main completion configuration.
+   * @param {*} data.model - the name of the model to chat with,
+   *                         e.g. mistral-tiny
+   * @param {*} data.prompt - the prompt to complete,
+   *                       e.g. 'def fibonacci(n: int):'
+   * @param {*} data.temperature - the temperature to use for sampling, e.g. 0.5
+   * @param {*} data.maxTokens - the maximum number of tokens to generate,
+   *                             e.g. 100
+   * @param {*} data.topP - the cumulative probability of tokens to generate,
+   *                        e.g. 0.9
+   * @param {*} data.randomSeed - the random seed to use for sampling, e.g. 42
+   * @param {*} data.stop - the stop sequence to use, e.g. ['\n']
+   * @param {*} data.suffix - the suffix to append to the prompt,
+   *                       e.g. 'n = int(input(\'Enter a number: \'))'
+   * @param {Object} options - Additional operational options.
+   * @param {*} [options.signal] - optional AbortSignal instance to control
+   *                               request The signal will be combined with
+   *                               default timeout signal
+   * @return {Promise<Object>}
+   */
+  completion = async function(
+    {
+      model,
+      prompt,
+      suffix,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      stop,
+    },
+    {signal} = {},
+  ) {
+    const request = this._makeCompletionRequest(
+      model,
+      prompt,
+      suffix,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      stop,
+      false,
+    );
+    const response = await this._request(
+      'post',
+      'v1/fim/completions',
+      request,
+      signal,
+    );
+    return response;
+  };
+
+  /**
+   * A completion endpoint that streams responses.
+   *
+   * @param {Object} data - The main completion configuration.
+   * @param {*} data.model - the name of the model to chat with,
+   *                         e.g. mistral-tiny
+   * @param {*} data.prompt - the prompt to complete,
+   *                       e.g. 'def fibonacci(n: int):'
+   * @param {*} data.temperature - the temperature to use for sampling, e.g. 0.5
+   * @param {*} data.maxTokens - the maximum number of tokens to generate,
+   *                             e.g. 100
+   * @param {*} data.topP - the cumulative probability of tokens to generate,
+   *                        e.g. 0.9
+   * @param {*} data.randomSeed - the random seed to use for sampling, e.g. 42
+   * @param {*} data.stop - the stop sequence to use, e.g. ['\n']
+   * @param {*} data.suffix - the suffix to append to the prompt,
+   *                       e.g. 'n = int(input(\'Enter a number: \'))'
+   * @param {Object} options - Additional operational options.
+   * @param {*} [options.signal] - optional AbortSignal instance to control
+   *                               request The signal will be combined with
+   *                               default timeout signal
+   * @return {Promise<Object>}
+   */
+  completionStream = async function* (
+    {
+      model,
+      prompt,
+      suffix,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      stop,
+    },
+    {signal} = {},
+  ) {
+    const request = this._makeCompletionRequest(
+      model,
+      prompt,
+      suffix,
+      temperature,
+      maxTokens,
+      topP,
+      randomSeed,
+      stop,
+      true,
+    );
+    const response = await this._request(
+      'post',
+      'v1/fim/completions',
+      request,
+      signal,
+    );
+
+    let buffer = '';
+    const decoder = new TextDecoder();
+    for await (const chunk of response) {
+      buffer += decoder.decode(chunk, {stream: true});
+      let firstNewline;
+      while ((firstNewline = buffer.indexOf('\n')) !== -1) {
+        const chunkLine = buffer.substring(0, firstNewline);
+        buffer = buffer.substring(firstNewline + 1);
+        if (chunkLine.startsWith('data:')) {
+          const json = chunkLine.substring(6).trim();
+          if (json !== '[DONE]') {
+            yield JSON.parse(json);
+          }
+        }
+      }
+    }
   };
 }
 
