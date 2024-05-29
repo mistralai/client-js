@@ -23,7 +23,7 @@ describe('Mistral Client', () => {
       client._fetch = mockFetch(200, mockResponse);
 
       const response = await client.chat({
-        model: 'mistral-small',
+        model: 'mistral-small-latest',
         messages: [
           {
             role: 'user',
@@ -40,7 +40,7 @@ describe('Mistral Client', () => {
       client._fetch = mockFetch(200, mockResponse);
 
       const response = await client.chat({
-        model: 'mistral-small',
+        model: 'mistral-small-latest',
         messages: [
           {
             role: 'user',
@@ -58,7 +58,7 @@ describe('Mistral Client', () => {
       client._fetch = mockFetch(200, mockResponse);
 
       const response = await client.chat({
-        model: 'mistral-small',
+        model: 'mistral-small-latest',
         messages: [
           {
             role: 'user',
@@ -78,7 +78,7 @@ describe('Mistral Client', () => {
       client._fetch = mockFetchStream(200, mockResponse);
 
       const response = await client.chatStream({
-        model: 'mistral-small',
+        model: 'mistral-small-latest',
         messages: [
           {
             role: 'user',
@@ -101,7 +101,7 @@ describe('Mistral Client', () => {
       client._fetch = mockFetchStream(200, mockResponse);
 
       const response = await client.chatStream({
-        model: 'mistral-small',
+        model: 'mistral-small-latest',
         messages: [
           {
             role: 'user',
@@ -125,7 +125,7 @@ describe('Mistral Client', () => {
       client._fetch = mockFetchStream(200, mockResponse);
 
       const response = await client.chatStream({
-        model: 'mistral-small',
+        model: 'mistral-small-latest',
         messages: [
           {
             role: 'user',
@@ -173,6 +173,20 @@ describe('Mistral Client', () => {
       client._fetch = mockFetch(200, mockResponse);
 
       const response = await client.listModels();
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('completion()', () => {
+    it('should return a chat response object', async() => {
+      // Mock the fetch function
+      const mockResponse = mockChatResponsePayload();
+      client._fetch = mockFetch(200, mockResponse);
+
+      const response = await client.completion({
+        model: 'mistral-small-latest',
+        prompt: '# this is a',
+      });
       expect(response).toEqual(mockResponse);
     });
   });
