@@ -1,7 +1,7 @@
 import FilesClient from './files.js';
 import JobsClient from './jobs.js';
 
-const VERSION = '0.3.0';
+const VERSION = '0.5.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
