@@ -182,15 +182,14 @@ declare module "@mistralai/mistralai" {
     ): AsyncGenerator<ChatCompletionResponseChunk, void>;
 
     completion(
-        request: CompletionRequest,
-        options?: ChatRequestOptions
+      request: CompletionRequest,
+      options?: ChatRequestOptions
     ): Promise<ChatCompletionResponse>;
 
     completionStream(
-        request: CompletionRequest,
-        options?: ChatRequestOptions
+      request: CompletionRequest,
+      options?: ChatRequestOptions
     ): AsyncGenerator<ChatCompletionResponseChunk, void>;
-
 
     embeddings(options: {
       model: string;
