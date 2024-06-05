@@ -183,40 +183,45 @@ export function mockChatResponsePayload() {
  */
 export function mockChatResponseStreamingPayload() {
   const encoder = new TextEncoder();
-  const firstMessage =
-    [encoder.encode('data: ' +
-    JSON.stringify({
-      id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
-      model: 'mistral-small-latest',
-      choices: [
-        {
-          index: 0,
-          delta: {role: 'assistant'},
-          finish_reason: null,
-        },
-      ],
-    }) +
-    '\n\n')];
-  const lastMessage = [encoder.encode('data: [DONE]\n\n')];
-
-  const dataMessages = [];
-  for (let i = 0; i < 10; i++) {
-    dataMessages.push(encoder.encode(
+  const firstMessage = [
+    encoder.encode(
       'data: ' +
         JSON.stringify({
           id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
-          object: 'chat.completion.chunk',
-          created: 1703168544,
           model: 'mistral-small-latest',
           choices: [
             {
-              index: i,
-              delta: {content: `stream response ${i}`},
+              index: 0,
+              delta: {role: 'assistant'},
               finish_reason: null,
             },
           ],
         }) +
-        '\n\n'),
+        '\n\n',
+    ),
+  ];
+  const lastMessage = [encoder.encode('data: [DONE]\n\n')];
+
+  const dataMessages = [];
+  for (let i = 0; i < 10; i++) {
+    dataMessages.push(
+      encoder.encode(
+        'data: ' +
+          JSON.stringify({
+            id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
+            object: 'chat.completion.chunk',
+            created: 1703168544,
+            model: 'mistral-small-latest',
+            choices: [
+              {
+                index: i,
+                delta: {content: `stream response ${i}`},
+                finish_reason: null,
+              },
+            ],
+          }) +
+          '\n\n',
+      ),
     );
   }
 
@@ -253,5 +258,131 @@ export function mockEmbeddingRequest() {
   return {
     model: 'mistral-embed',
     input: 'embed',
+  };
+}
+
+/**
+ * Mock file response payload
+ * @return {Object}
+ */
+export function mockFileResponsePayload() {
+  return {
+    id: 'fileId',
+    object: 'file',
+    bytes: 0,
+    created_at: 1633046400000,
+    filename: 'file.jsonl',
+    purpose: 'fine-tune',
+  };
+}
+
+/**
+ * Mock files response payload
+ * @return {Object}
+ */
+export function mockFilesResponsePayload() {
+  return {
+    data: [
+      {
+        id: 'fileId',
+        object: 'file',
+        bytes: 0,
+        created_at: 1633046400000,
+        filename: 'file.jsonl',
+        purpose: 'fine-tune',
+      },
+    ],
+    object: 'list',
+  };
+}
+
+/**
+ * Mock deleted file response payload
+ * @return {Object}
+ */
+export function mockDeletedFileResponsePayload() {
+  return {
+    id: 'fileId',
+    object: 'file',
+    deleted: true,
+  };
+}
+
+/**
+ * Mock job response payload
+ * @return {Object}
+ */
+export function mockJobResponsePayload() {
+  return {
+    id: 'jobId',
+    hyperparameters: {
+      training_steps: 1800,
+      learning_rate: 1.0e-4,
+    },
+    fine_tuned_model: 'fine_tuned_model_id',
+    model: 'mistral-medium',
+    status: 'QUEUED',
+    job_type: 'fine_tuning',
+    created_at: 1633046400000,
+    modified_at: 1633046400000,
+    training_files: ['file1.jsonl', 'file2.jsonl'],
+    validation_files: ['file3.jsonl', 'file4.jsonl'],
+    object: 'job',
+  };
+}
+
+/**
+ * Mock jobs response payload
+ * @return {Object}
+ */
+export function mockJobsResponsePayload() {
+  return {
+    data: [
+      {
+        id: 'jobId1',
+        hyperparameters: {
+          training_steps: 1800,
+          learning_rate: 1.0e-4,
+        },
+        fine_tuned_model: 'fine_tuned_model_id1',
+        model: 'mistral-medium',
+        status: 'QUEUED',
+        job_type: 'fine_tuning',
+        created_at: 1633046400000,
+        modified_at: 1633046400000,
+        training_files: ['file1.jsonl', 'file2.jsonl'],
+        validation_files: ['file3.jsonl', 'file4.jsonl'],
+        object: 'job',
+      },
+      {
+        id: 'jobId2',
+        hyperparameters: {
+          training_steps: 1800,
+          learning_rate: 1.0e-4,
+        },
+        fine_tuned_model: 'fine_tuned_model_id2',
+        model: 'mistral-medium',
+        status: 'RUNNING',
+        job_type: 'fine_tuning',
+        created_at: 1633046400000,
+        modified_at: 1633046400000,
+        training_files: ['file5.jsonl', 'file6.jsonl'],
+        validation_files: ['file7.jsonl', 'file8.jsonl'],
+        object: 'job',
+      },
+    ],
+    object: 'list',
+  };
+}
+
+/**
+ * Mock deleted job response payload
+ * @return {Object}
+ */
+export function mockDeletedJobResponsePayload() {
+  return {
+    id: 'jobId',
+    object: 'job',
+    deleted: true,
   };
 }

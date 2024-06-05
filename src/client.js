@@ -1,3 +1,6 @@
+import FilesClient from './files.js';
+import JobsClient from './jobs.js';
+
 const VERSION = '0.3.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
@@ -79,6 +82,9 @@ class MistralClient {
     if (this.endpoint.indexOf('inference.azure.com')) {
       this.modelDefault = 'mistral';
     }
+
+    this.files = new FilesClient(this);
+    this.jobs = new JobsClient(this);
   }
 
   /**
@@ -98,9 +104,10 @@ class MistralClient {
    * @param {*} path
    * @param {*} request
    * @param {*} signal
+   * @param {*} formData
    * @return {Promise<*>}
    */
-  _request = async function(method, path, request, signal) {
+  _request = async function(method, path, request, signal, formData = null) {
     const url = `${this.endpoint}/${path}`;
     const options = {
       method: method,
@@ -110,12 +117,17 @@ class MistralClient {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },
-      body: method !== 'get' ? JSON.stringify(request) : null,
       signal: combineSignals([
         AbortSignal.timeout(this.timeout * 1000),
         signal,
       ]),
+      body: method !== 'get' ? formData ?? JSON.stringify(request) : null,
+      timeout: this.timeout * 1000,
     };
+
+    if (formData) {
+      delete options.headers['Content-Type'];
+    }
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
@@ -161,7 +173,7 @@ class MistralClient {
         } else {
           throw new MistralAPIError(
             `HTTP error! status: ${response.status} ` +
-            `Response: \n${await response.text()}`,
+              `Response: \n${await response.text()}`,
           );
         }
       } catch (error) {
@@ -467,16 +479,7 @@ class MistralClient {
    * @return {Promise<Object>}
    */
   completion = async function(
-    {
-      model,
-      prompt,
-      suffix,
-      temperature,
-      maxTokens,
-      topP,
-      randomSeed,
-      stop,
-    },
+    {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop},
     {signal} = {},
   ) {
     const request = this._makeCompletionRequest(
@@ -523,16 +526,7 @@ class MistralClient {
    * @return {Promise<Object>}
    */
   completionStream = async function* (
-    {
-      model,
-      prompt,
-      suffix,
-      temperature,
-      maxTokens,
-      topP,
-      randomSeed,
-      stop,
-    },
+    {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop},
     {signal} = {},
   ) {
     const request = this._makeCompletionRequest(
