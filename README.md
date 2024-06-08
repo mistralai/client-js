@@ -78,6 +78,47 @@ const embeddingsBatchResponse = await client.embeddings({
 console.log('Embeddings Batch:', embeddingsBatchResponse.data);
 ```
 
+### Files
+
+```typescript
+// Create a new file
+const file = fs.readFileSync('file.jsonl');
+const createdFile = await client.files.create({ file });
+
+// List files
+const files = await client.files.list();
+
+// Retrieve a file
+const retrievedFile = await client.files.retrieve({ fileId: createdFile.id });
+
+// Delete a file
+const deletedFile = await client.files.delete({ fileId: createdFile.id });
+```
+
+### Fine-tuning Jobs
+
+```typescript
+// Create a new job
+const createdJob = await client.jobs.create({
+  model: 'open-mistral-7B',
+  trainingFiles: [trainingFile.id],
+  validationFiles: [validationFile.id],
+  hyperparameters: {
+    trainingSteps: 10,
+    learningRate: 0.0001,
+  },
+});
+
+// List jobs
+const jobs = await client.jobs.list();
+
+// Retrieve a job
+const retrievedJob = await client.jobs.retrieve({ jobId: createdJob.id });
+
+// Cancel a job
+const canceledJob = await client.jobs.cancel({ jobId: createdJob.id });
+```
+
 ## Run examples
 
 You can run the examples in the examples directory by installing them locally:

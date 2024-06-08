@@ -1,7 +1,7 @@
 // test/client.test.ts
 import { describe, expect } from '@jest/globals';
 
-import { MistralClient } from '@mistralai/mistralai';
+import  MistralClient  from '../src/mistral-client';
 import {
   mockListModels,
   mockFetch,
@@ -41,8 +41,13 @@ describe('Mistral Client', () => {
       client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.chat({
-        model: 'mistral-small',
-        messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+        model: 'mistral-small-latest',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
       });
       expect(response).toEqual(mockResponse);
     });
@@ -52,8 +57,13 @@ describe('Mistral Client', () => {
       client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.chat({
-        model: 'mistral-small',
-        messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+        model: 'mistral-small-latest',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
         safeMode: true,
       });
       expect(response).toEqual(mockResponse);
@@ -64,8 +74,13 @@ describe('Mistral Client', () => {
       client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.chat({
-        model: 'mistral-small',
-        messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+        model: 'mistral-small-latest',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
         safePrompt: true,
       });
       expect(response).toEqual(mockResponse);
@@ -78,8 +93,13 @@ describe('Mistral Client', () => {
       client['_fetch'] = mockFetchStream(200, mockResponse) as any;
 
       const response = await client.chatStream({
-        model: 'mistral-small',
-        messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+        model: 'mistral-small-latest',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
       });
 
       const parsedResponse: any[] = [];
@@ -95,8 +115,13 @@ describe('Mistral Client', () => {
       client['_fetch'] = mockFetchStream(200, mockResponse) as any;
 
       const response = await client.chatStream({
-        model: 'mistral-small',
-        messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+        model: 'mistral-small-latest',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
         safeMode: true,
       });
 
@@ -113,8 +138,13 @@ describe('Mistral Client', () => {
       client['_fetch'] = mockFetchStream(200, mockResponse) as any;
 
       const response = await client.chatStream({
-        model: 'mistral-small',
-        messages: [{ role: 'user', content: 'What is the best French cheese?' }],
+        model: 'mistral-small-latest',
+        messages: [
+          {
+            role: 'user',
+            content: 'What is the best French cheese?',
+          },
+        ],
         safePrompt: true,
       });
 
@@ -153,6 +183,20 @@ describe('Mistral Client', () => {
       client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.listModels();
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('completion()', () => {
+    it('should return a chat response object', async() => {
+      // Mock the fetch function
+      const mockResponse = mockChatResponsePayload();
+      client["_fetch"] = mockFetch(200, mockResponse) as any;
+
+      const response = await client.completion({
+        model: 'mistral-small-latest',
+        prompt: '# this is a',
+      });
       expect(response).toEqual(mockResponse);
     });
   });
