@@ -8,6 +8,8 @@ ignorePatterns:
   - examples/chat-react/
   - examples/
   - dist/
+  - tsup.config.ts
+  - jest.config.ts
 parser: "@typescript-eslint/parser"
 parserOptions:
   ecmaVersion: latest
@@ -17,6 +19,7 @@ rules:
   indent: ["error", 2]
   space-before-function-paren: ["error", "never"]
   quotes: ["error", "single"]
-  require-jsdoc: ["warn"]
-  valid-jsdoc: ["warn"]
+  require-jsdoc: "off"
+  valid-jsdoc: "off"
   "@typescript-eslint/no-explicit-any": "warn"
+  max-len: "warn"

@@ -1,4 +1,3 @@
-
 export interface ModelPermission {
     id: string;
     object: 'model_permission';
@@ -121,7 +120,7 @@ export type Message =
 
 export interface Tool {
     type: 'function';
-    function: Function;
+    function: (...args: any[]) => any;
 }
 
 export interface ChatRequest {

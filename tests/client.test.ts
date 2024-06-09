@@ -1,4 +1,3 @@
-// test/client.test.ts
 import {describe, expect} from '@jest/globals';
 
 import MistralClient from '../src/mistral-client';
@@ -12,21 +11,6 @@ import {
   mockEmbeddingResponsePayload,
 } from './test-utils';
 
-interface ChatMessage {
-  role: string;
-  content: string;
-}
-
-interface ChatParams {
-  model: string;
-  messages: ChatMessage[];
-  safeMode?: boolean;
-  safePrompt?: boolean;
-}
-
-interface ChatStreamParams extends ChatParams {
-  [key: string]: any;
-}
 
 describe('Mistral Client', () => {
   let client: MistralClient;
