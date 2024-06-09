@@ -1,7 +1,7 @@
 export enum Purpose {
     finetune = 'fine-tune',
   }
-  
+
 export interface FileObject {
     id: string;
     object: string;
@@ -10,10 +10,10 @@ export interface FileObject {
     filename: string;
     purpose?: Purpose;
 }
-  
+
 export interface FileDeleted {
     id: string;
     object: string;
     deleted: boolean;
 }
-  
+

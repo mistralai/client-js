@@ -1,1 +1,1 @@
-export { default as MistralClient } from './mistral-client';
+export {default as MistralClient} from './mistral-client';

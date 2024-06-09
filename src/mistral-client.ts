@@ -1,10 +1,10 @@
 
-import { MistralAPIError } from './utils/api-error';
-import { configuredFetch } from './utils/init-fetch';
-import { combineSignals } from './utils/helper';
+import {MistralAPIError} from './utils/api-error';
+import {configuredFetch} from './utils/init-fetch';
+import {combineSignals} from './utils/helper';
 import FilesClient from './files';
 import JobsClient from './jobs';
-import { ChatCompletionResponse, ChatCompletionResponseChunk, ChatRequest, ChatRequestOptions, CompletionRequest, EmbeddingResponse, ListModelsResponse, Message, ResponseFormat, Tool } from './types/mistral-client';
+import {ChatCompletionResponse, ChatCompletionResponseChunk, ChatRequest, ChatRequestOptions, CompletionRequest, EmbeddingResponse, ListModelsResponse, Message, ResponseFormat, Tool} from './types/mistral-client';
 
 const VERSION = '0.5.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
@@ -12,7 +12,7 @@ const ENDPOINT = 'https://api.mistral.ai';
 
 /**
  * MistralClient
- * @returns {MistralClient}
+ * @return {MistralClient}
  */
 export default class MistralClient {
   public apiKey: string;
@@ -20,8 +20,8 @@ export default class MistralClient {
   public maxRetries: number;
   public timeout: number;
   public modelDefault?: string;
-  public files:FilesClient
-  public jobs:JobsClient
+  public files:FilesClient;
+  public jobs:JobsClient;
 
   constructor(apiKey = process.env.MISTRAL_API_KEY!, endpoint = ENDPOINT, maxRetries = 5, timeout = 120) {
     this.apiKey = apiKey;
@@ -38,18 +38,18 @@ export default class MistralClient {
 
   /**
    * hook point for non-global fetch override
-   * @param input 
-   * @param init 
-   * @returnss 
+   * @param input
+   * @param init
+   * @returnss
    */
-  private async _fetch(input: string | Request, init?: RequestInit){
+  private async _fetch(input: string | Request, init?: RequestInit) {
     const fetchFunc = await configuredFetch;
     return fetchFunc(input, init);
   }
 
 
   /**
-   * 
+   *
    * @param {*} method
    * @param {*} path
    * @param {*} request
@@ -57,22 +57,22 @@ export default class MistralClient {
    * @param {*} formData
    * @return {Promise<*>}
    */
-   async _request(method: string, path: string, request?: any, signal?:AbortSignal, formData?:FormData): Promise<any> {
+  async _request(method: string, path: string, request?: any, signal?:AbortSignal, formData?:FormData): Promise<any> {
     const url = `${this.endpoint}/${path}`;
     const headers: Record<string, string> = {
       'User-Agent': `mistral-client-js/${VERSION}`,
-      Accept: request?.stream ? 'text/event-stream' : 'application/json',
+      'Accept': request?.stream ? 'text/event-stream' : 'application/json',
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.apiKey}`,
+      'Authorization': `Bearer ${this.apiKey}`,
     };
     const options: RequestInit = {
       method,
       headers,
       body: method !== 'get' ? formData ?? JSON.stringify(request) : null,
       signal: signal? combineSignals([AbortSignal.timeout(this.timeout * 1000), signal]): AbortSignal.timeout(this.timeout * 1000),
-      
+
       // 'timeout' is not a valid option for RequestInit
-      //timeout: this.timeout * 1000,
+      // timeout: this.timeout * 1000,
     };
 
     if (formData) {
@@ -94,7 +94,7 @@ export default class MistralClient {
                 try {
                   while (true) {
                     // Read from the stream
-                    const { done, value } = await reader.read();
+                    const {done, value} = await reader.read();
                     // Exit if we're done
                     if (done) return;
                     // Else yield the chunk
@@ -199,7 +199,7 @@ export default class MistralClient {
     stream?: boolean,
     safeMode?: boolean,
     safePrompt?: boolean,
-    toolChoice?: "auto" | "any" | "none",
+    toolChoice?: 'auto' | 'any' | 'none',
     responseFormat?: ResponseFormat,
   )=> {
     // if modelDefault and model are undefined, throw an error
@@ -223,7 +223,7 @@ export default class MistralClient {
 
   /**
    * Returns a list of the available models
-   * @returnss 
+   * @returnss
    */
   async listModels(): Promise<ListModelsResponse> {
     return await this._request('get', 'v1/models');
@@ -254,7 +254,7 @@ export default class MistralClient {
    * @param {*} [options.signal] - optional AbortSignal instance to control
    *                               request The signal will be combined with
    *                               default timeout signal
-   * @returns {Promise<ChatCompletionResponse>}
+   * @return {Promise<ChatCompletionResponse>}
    */
   async chat({
     model,
@@ -268,7 +268,7 @@ export default class MistralClient {
     safePrompt,
     toolChoice,
     responseFormat,
-  }: ChatRequest,  {signal}: ChatRequestOptions = {}): Promise<ChatCompletionResponse> {
+  }: ChatRequest, {signal}: ChatRequestOptions = {}): Promise<ChatCompletionResponse> {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -283,7 +283,7 @@ export default class MistralClient {
       toolChoice,
       responseFormat,
     );
-    return await this._request('post', 'v1/chat/completions', request,  signal,);
+    return await this._request('post', 'v1/chat/completions', request, signal);
   }
 
   /**
@@ -311,9 +311,9 @@ export default class MistralClient {
    * @param {*} [options.signal] - optional AbortSignal instance to control
    *                               request The signal will be combined with
    *                               default timeout signal
-   * @returns {AsyncGenerator<ChatCompletionResponseChunk, void>}
+   * @return {AsyncGenerator<ChatCompletionResponseChunk, void>}
    */
-  async *chatStream({
+  async* chatStream({
     model,
     messages,
     tools,
@@ -325,7 +325,7 @@ export default class MistralClient {
     safePrompt,
     toolChoice,
     responseFormat,
-  }: ChatRequest,  {signal}: ChatRequestOptions = {}): AsyncGenerator<ChatCompletionResponseChunk, void> {
+  }: ChatRequest, {signal}: ChatRequestOptions = {}): AsyncGenerator<ChatCompletionResponseChunk, void> {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -344,7 +344,7 @@ export default class MistralClient {
     let buffer = '';
     const decoder = new TextDecoder();
     for await (const chunk of response) {
-      buffer += decoder.decode(chunk, { stream: true });
+      buffer += decoder.decode(chunk, {stream: true});
       let firstNewline;
       while ((firstNewline = buffer.indexOf('\n')) !== -1) {
         const chunkLine = buffer.substring(0, firstNewline);
@@ -364,9 +364,9 @@ export default class MistralClient {
    * or batch of inputs
    * @param {*} model The embedding model to use, e.g. mistral-embed
    * @param {*} input The input to embed, e.g. ['What is the best French cheese?']
-   * @returns {Promise<EmbeddingResponse>}
+   * @return {Promise<EmbeddingResponse>}
    */
-  async embeddings({ model, input }: { model: string; input: string }):Promise<EmbeddingResponse> {
+  async embeddings({model, input}: { model: string; input: string }):Promise<EmbeddingResponse> {
     const request = {
       model: model,
       input: input,
@@ -398,7 +398,7 @@ export default class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  completion = async (
+  completion = async(
     {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop}: CompletionRequest,
     {signal}:ChatRequestOptions = {},
   ) => {
@@ -445,7 +445,7 @@ export default class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  async *completionStream(
+  async* completionStream(
     {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop}: CompletionRequest,
     {signal}: ChatRequestOptions = {},
   ) {

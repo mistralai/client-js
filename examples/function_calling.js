@@ -21,7 +21,7 @@ const data = {
  * This function retrieves the payment status of a transaction id.
  * @param {object} data - The data object.
  * @param {string} transactionId - The transaction id.
- * @returns {string} - The payment status.
+ * @return {string} - The payment status.
  */
 function retrievePaymentStatus({data, transactionId}) {
   const transactionIndex = data.transactionId.indexOf(transactionId);
@@ -36,7 +36,7 @@ function retrievePaymentStatus({data, transactionId}) {
  * This function retrieves the payment date of a transaction id.
  * @param {object} data - The data object.
  * @param {string} transactionId - The transaction id.
- * @returns {string} - The payment date.
+ * @return {string} - The payment date.
  *
  */
 function retrievePaymentDate({data, transactionId}) {

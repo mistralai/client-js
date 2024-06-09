@@ -1,12 +1,12 @@
-import MistralClient from "./mistral-client";
-import { DetailedJob, Integration, Job, Jobs, TrainingParameters } from "./types/jobs";
+import MistralClient from './mistral-client';
+import {DetailedJob, Integration, Job, Jobs, TrainingParameters} from './types/jobs';
 
 
 /**
  * Class representing a client for job operations.
  */
 class JobsClient {
-  client: MistralClient
+  client: MistralClient;
   /**
    * Create a JobsClient object.
    * @param {MistralClient} client - The client object used for making requests.
@@ -43,7 +43,7 @@ class JobsClient {
     hyperparameters?: TrainingParameters;
     suffix?: string;
     integrations?: Integration[];
-  }): Promise<Job>{
+  }): Promise<Job> {
     const response = await this.client._request('post', 'v1/fine_tuning/jobs', {
       model,
       training_files: trainingFiles,

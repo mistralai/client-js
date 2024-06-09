@@ -1,6 +1,6 @@
 /**
  * MistralAPIError
- * @returns {MistralAPIError}
+ * @return {MistralAPIError}
  * @extends {Error}
  */
 export class MistralAPIError extends Error {

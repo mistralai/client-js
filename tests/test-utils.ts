@@ -1,5 +1,5 @@
-import { jest } from '@jest/globals';
-import { ChatCompletionResponse, Embedding, EmbeddingResponse, ListModelsResponse } from "../src/types/mistral-client"
+import {jest} from '@jest/globals';
+import {ChatCompletionResponse, Embedding, EmbeddingResponse, ListModelsResponse} from '../src/types/mistral-client';
 
 interface FetchResponse {
   json: () => Promise<any>;
@@ -228,7 +228,7 @@ export function mockChatResponseStreamingPayload(): Uint8Array[] {
 /**
  * Mock embeddings response
  * @param batchSize number of embeddings to generate
- * @returns EmbeddingResponsePayload
+ * @return EmbeddingResponsePayload
  */
 export function mockEmbeddingResponsePayload(batchSize: number = 1): EmbeddingResponse {
   const data: Embedding[] = [];
@@ -236,7 +236,7 @@ export function mockEmbeddingResponsePayload(batchSize: number = 1): EmbeddingRe
   // Create 'batchSize' copies of the embedding object
   for (let i = 0; i < batchSize; i++) {
     data.push({
-      id:i.toString(),
+      id: i.toString(),
       object: 'embedding',
       embedding: [-0.018585205078125, 0.027099609375, 0.02587890625],
     });

@@ -7,23 +7,23 @@ export enum JobStatus {
     CANCELLED = 'CANCELLED',
     CANCELLATION_REQUESTED = 'CANCELLATION_REQUESTED',
   }
-  
-  export interface TrainingParameters {
+
+export interface TrainingParameters {
     training_steps: number;
     learning_rate: number;
   }
-  
-  export interface WandbIntegration {
+
+export interface WandbIntegration {
     type: 'wandb';
     project: string;
     name: string | null;
     api_key: string | null;
     run_name: string | null;
   }
-  
-  export type Integration = WandbIntegration;
-  
-  export interface Job {
+
+export type Integration = WandbIntegration;
+
+export interface Job {
     id: string;
     hyperparameters: TrainingParameters;
     fine_tuned_model: string;
@@ -37,33 +37,32 @@ export enum JobStatus {
     object: 'job';
     integrations: Integration[];
   }
-  
-  export interface Event {
+
+export interface Event {
     name: string;
     data?: Record<string, unknown>;
     created_at: number;
   }
-  
-  export interface Metric {
+
+export interface Metric {
     train_loss: number | null;
     valid_loss: number | null;
     valid_mean_token_accuracy: number | null;
   }
-  
-  export interface Checkpoint {
+
+export interface Checkpoint {
     metrics: Metric;
     step_number: number;
     created_at: number;
   }
-  
-  export interface DetailedJob extends Job {
+
+export interface DetailedJob extends Job {
     events: Event[];
     checkpoints: Checkpoint[];
   }
-  
-  export interface Jobs {
+
+export interface Jobs {
     data: Job[];
     object: 'list';
   }
-  
- 
+

@@ -1,7 +1,7 @@
 
 export interface ModelPermission {
     id: string;
-    object: "model_permission";
+    object: 'model_permission';
     created: number;
     allow_create_engine: boolean;
     allow_sampling: boolean;
@@ -16,7 +16,7 @@ export interface ModelPermission {
 
 export interface Model {
     id: string;
-    object: "model";
+    object: 'model';
     created: number;
     owned_by: string;
     root: string | null;
@@ -25,7 +25,7 @@ export interface Model {
 }
 
 export interface ListModelsResponse {
-    object: "list";
+    object: 'list';
     data: Model[];
 }
 
@@ -46,7 +46,7 @@ export interface ToolCalls {
 }
 
 export interface ResponseFormat {
-    type: "json_object";
+    type: 'json_object';
 }
 
 export interface TokenUsage {
@@ -77,7 +77,7 @@ export interface ChatCompletionResponseChunkChoice {
 
 export interface ChatCompletionResponse {
     id: string;
-    object: "chat.completion";
+    object: 'chat.completion';
     created: number;
     model: string;
     choices: ChatCompletionResponseChoice[];
@@ -86,7 +86,7 @@ export interface ChatCompletionResponse {
 
 export interface ChatCompletionResponseChunk {
     id: string;
-    object: "chat.completion.chunk";
+    object: 'chat.completion.chunk';
     created: number;
     model: string;
     choices: ChatCompletionResponseChunkChoice[];
@@ -95,13 +95,13 @@ export interface ChatCompletionResponseChunk {
 
 export interface Embedding {
     id: string;
-    object: "embedding";
+    object: 'embedding';
     embedding: number[];
 }
 
 export interface EmbeddingResponse {
     id: string;
-    object: "list";
+    object: 'list';
     data: Embedding[];
     model: string;
     usage: TokenUsage;
@@ -109,18 +109,18 @@ export interface EmbeddingResponse {
 
 export type Message =
     | {
-        role: "system" | "user" | "assistant";
+        role: 'system' | 'user' | 'assistant';
         content: string | string[];
     }
     | {
-        role: "tool";
+        role: 'tool';
         content: string | string[];
         name: string;
         tool_call_id: string;
     };
 
 export interface Tool {
-    type: "function";
+    type: 'function';
     function: Function;
 }
 
@@ -137,7 +137,7 @@ export interface ChatRequest {
      */
     safeMode?: boolean;
     safePrompt?: boolean;
-    toolChoice?: "auto" | "any" | "none";
+    toolChoice?: 'auto' | 'any' | 'none';
     responseFormat?: ResponseFormat;
 }
 
@@ -156,6 +156,3 @@ export interface ChatRequestOptions {
     signal?: AbortSignal;
 }
 
-
-
-  

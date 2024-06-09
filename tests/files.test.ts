@@ -18,7 +18,7 @@ describe('Mistral Client', () => {
       // Mock the fetch function
       const mockResponse = mockFileResponsePayload();
       client['_fetch'] = mockFetch(200, mockResponse) as any;
-      const mockFile = new File(["file content"], "test.txt", { type: "text/plain" });
+      const mockFile = new File(['file content'], 'test.txt', {type: 'text/plain'});
       const response = await client.files.create({
         file: mockFile,
       });
