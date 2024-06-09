@@ -1,12 +1,17 @@
+import MistralClient from './mistral-client';
+import {DetailedJob, Integration, Job, Jobs, TrainingParameters} from './types/jobs';
+
+
 /**
  * Class representing a client for job operations.
  */
 class JobsClient {
+  client: MistralClient;
   /**
    * Create a JobsClient object.
    * @param {MistralClient} client - The client object used for making requests.
    */
-  constructor(client) {
+  constructor(client:MistralClient) {
     this.client = client;
   }
 
@@ -29,9 +34,16 @@ class JobsClient {
       training_steps: 1800,
       learning_rate: 1.0e-4,
     },
-    suffix = null,
-    integrations = null,
-  }) {
+    suffix,
+    integrations,
+  }:{
+    model: string;
+    trainingFiles: string[];
+    validationFiles?: string[];
+    hyperparameters?: TrainingParameters;
+    suffix?: string;
+    integrations?: Integration[];
+  }): Promise<Job> {
     const response = await this.client._request('post', 'v1/fine_tuning/jobs', {
       model,
       training_files: trainingFiles,
@@ -48,7 +60,7 @@ class JobsClient {
    * @param {string} jobId - The ID of the job to retrieve.
    * @return {Promise<*>} A promise that resolves to the job data.
    */
-  async retrieve({jobId}) {
+  async retrieve({jobId}: { jobId: string }): Promise<DetailedJob> {
     const response = await this.client._request(
       'get', `v1/fine_tuning/jobs/${jobId}`, {},
     );
@@ -59,7 +71,7 @@ class JobsClient {
    * List all jobs.
    * @return {Promise<Array<Job>>} A promise that resolves to an array of Job.
    */
-  async list() {
+  async list(): Promise<Jobs> {
     const response = await this.client._request(
       'get', 'v1/fine_tuning/jobs', {},
     );
@@ -71,7 +83,7 @@ class JobsClient {
    * @param {string} jobId - The ID of the job to cancel.
    * @return {Promise<*>} A promise that resolves to the response.
    */
-  async cancel({jobId}) {
+  async cancel({jobId}:{ jobId: string }): Promise<DetailedJob> {
     const response = await this.client._request(
       'post', `v1/fine_tuning/jobs/${jobId}/cancel`, {},
     );

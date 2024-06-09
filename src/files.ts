@@ -1,12 +1,16 @@
+import MistralClient from './mistral-client';
+import {FileDeleted, FileObject} from './types/files';
+
 /**
  * Class representing a client for file operations.
  */
 class FilesClient {
+  client: MistralClient;
   /**
    * Create a FilesClient object.
    * @param {MistralClient} client - The client object used for making requests.
    */
-  constructor(client) {
+  constructor(client: MistralClient) {
     this.client = client;
   }
 
@@ -17,7 +21,7 @@ class FilesClient {
    * @return {Promise<*>} A promise that resolves to a FileObject.
    * @throws {MistralAPIError} If no response is received from the server.
    */
-  async create({file, purpose = 'fine-tune'}) {
+  async create({file, purpose = 'fine-tune'}: { file: File; purpose?: string }) : Promise<FileObject> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('purpose', purpose);
@@ -36,7 +40,7 @@ class FilesClient {
    * @param {string} fileId - The ID of the file to retrieve.
    * @return {Promise<*>} A promise that resolves to the file data.
    */
-  async retrieve({fileId}) {
+  async retrieve({fileId}: { fileId: string }): Promise<FileObject> {
     const response = await this.client._request('get', `v1/files/${fileId}`);
     return response;
   }
@@ -46,7 +50,7 @@ class FilesClient {
    * @return {Promise<Array<FileObject>>} A promise that resolves to
    * an array of FileObject.
    */
-  async list() {
+  async list(): Promise<FileObject[]> {
     const response = await this.client._request('get', 'v1/files');
     return response;
   }
@@ -56,7 +60,7 @@ class FilesClient {
    * @param {string} fileId - The ID of the file to delete.
    * @return {Promise<*>} A promise that resolves to the response.
    */
-  async delete({fileId}) {
+  async delete({fileId}: { fileId: string }): Promise<FileDeleted> {
     const response = await this.client._request('delete', `v1/files/${fileId}`);
     return response;
   }

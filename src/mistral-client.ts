@@ -1,85 +1,34 @@
-import FilesClient from './files.js';
-import JobsClient from './jobs.js';
+
+import {MistralAPIError} from './utils/api-error';
+import {configuredFetch} from './utils/init-fetch';
+import {combineSignals} from './utils/helper';
+import FilesClient from './files';
+import JobsClient from './jobs';
+import {ChatCompletionResponse, ChatCompletionResponseChunk, ChatRequest, ChatRequestOptions, CompletionRequest, EmbeddingResponse, ListModelsResponse, Message, ResponseFormat, Tool} from './types/mistral-client';
 
 const VERSION = '0.5.0';
 const RETRY_STATUS_CODES = [429, 500, 502, 503, 504];
 const ENDPOINT = 'https://api.mistral.ai';
 
-// We can't use a top level await if eventually this is to be converted
-// to typescript and compiled to commonjs, or similarly using babel.
-const configuredFetch = Promise.resolve(
-  globalThis.fetch ?? import('node-fetch').then((m) => m.default),
-);
-
-/**
- * MistralAPIError
- * @return {MistralAPIError}
- * @extends {Error}
- */
-class MistralAPIError extends Error {
-  /**
-   * A simple error class for Mistral API errors
-   * @param {*} message
-   */
-  constructor(message) {
-    super(message);
-    this.name = 'MistralAPIError';
-  }
-}
-
-/**
- * @param {Array<AbortSignal|undefined>} signals to merge
- * @return {AbortSignal} signal which will abort when any of signals abort
- */
-function combineSignals(signals) {
-  const controller = new AbortController();
-  signals.forEach((signal) => {
-    if (!signal) {
-      return;
-    }
-
-    signal.addEventListener(
-      'abort',
-      () => {
-        controller.abort(signal.reason);
-      },
-      {once: true},
-    );
-
-    if (signal.aborted) {
-      controller.abort(signal.reason);
-    }
-  });
-
-  return controller.signal;
-}
-
 /**
  * MistralClient
  * @return {MistralClient}
  */
-class MistralClient {
-  /**
-   * A simple and lightweight client for the Mistral API
-   * @param {*} apiKey can be set as an environment variable MISTRAL_API_KEY,
-   * or provided in this parameter
-   * @param {*} endpoint defaults to https://api.mistral.ai
-   * @param {*} maxRetries defaults to 5
-   * @param {*} timeout defaults to 120 seconds
-   */
-  constructor(
-    apiKey = process.env.MISTRAL_API_KEY,
-    endpoint = ENDPOINT,
-    maxRetries = 5,
-    timeout = 120,
-  ) {
-    this.endpoint = endpoint;
-    this.apiKey = apiKey;
+export default class MistralClient {
+  public apiKey: string;
+  public endpoint: string;
+  public maxRetries: number;
+  public timeout: number;
+  public modelDefault?: string;
+  public files:FilesClient;
+  public jobs:JobsClient;
 
+  constructor(apiKey = process.env.MISTRAL_API_KEY!, endpoint = ENDPOINT, maxRetries = 5, timeout = 120) {
+    this.apiKey = apiKey;
+    this.endpoint = endpoint;
     this.maxRetries = maxRetries;
     this.timeout = timeout;
-
-    if (this.endpoint.indexOf('inference.azure.com')) {
+    if (this.endpoint.includes('inference.azure.com')) {
       this.modelDefault = 'mistral';
     }
 
@@ -88,15 +37,16 @@ class MistralClient {
   }
 
   /**
-   * @return {Promise}
-   * @private
-   * @param {...*} args - fetch args
    * hook point for non-global fetch override
+   * @param input
+   * @param init
+   * @returnss
    */
-  async _fetch(...args) {
+  private async _fetch(input: string | Request, init?: RequestInit) {
     const fetchFunc = await configuredFetch;
-    return fetchFunc(...args);
+    return fetchFunc(input, init);
   }
+
 
   /**
    *
@@ -107,39 +57,38 @@ class MistralClient {
    * @param {*} formData
    * @return {Promise<*>}
    */
-  _request = async function(method, path, request, signal, formData = null) {
+  async _request(method: string, path: string, request?: any, signal?:AbortSignal, formData?:FormData): Promise<any> {
     const url = `${this.endpoint}/${path}`;
-    const options = {
-      method: method,
-      headers: {
-        'User-Agent': `mistral-client-js/${VERSION}`,
-        'Accept': request?.stream ? 'text/event-stream' : 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      signal: combineSignals([
-        AbortSignal.timeout(this.timeout * 1000),
-        signal,
-      ]),
+    const headers: Record<string, string> = {
+      'User-Agent': `mistral-client-js/${VERSION}`,
+      'Accept': request?.stream ? 'text/event-stream' : 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.apiKey}`,
+    };
+    const options: RequestInit = {
+      method,
+      headers,
       body: method !== 'get' ? formData ?? JSON.stringify(request) : null,
-      timeout: this.timeout * 1000,
+      signal: signal? combineSignals([AbortSignal.timeout(this.timeout * 1000), signal]): AbortSignal.timeout(this.timeout * 1000),
+
+      // 'timeout' is not a valid option for RequestInit
+      // timeout: this.timeout * 1000,
     };
 
     if (formData) {
-      delete options.headers['Content-Type'];
+      delete headers['Content-Type'];
     }
 
     for (let attempts = 0; attempts < this.maxRetries; attempts++) {
       try {
         const response = await this._fetch(url, options);
-
         if (response.ok) {
           if (request?.stream) {
             // When using node-fetch or test mocks, getReader is not defined
-            if (typeof response.body.getReader === 'undefined') {
+            if (typeof response.body!.getReader === 'undefined') {
               return response.body;
             } else {
-              const reader = response.body.getReader();
+              const reader = response.body!.getReader();
               // Chrome does not support async iterators yet, so polyfill it
               const asyncIterator = async function* () {
                 try {
@@ -166,29 +115,61 @@ class MistralClient {
             `Response: ${await response.text()}`,
             `Attempt: ${attempts + 1}`,
           );
-          // eslint-disable-next-line max-len
-          await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, attempts + 1) * 500),
-          );
+          await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempts + 1) * 500));
         } else {
           throw new MistralAPIError(
             `HTTP error! status: ${response.status} ` +
-              `Response: \n${await response.text()}`,
+            `Response: \n${await response.text()}`,
           );
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Request failed: ${error.message}`);
-        if (error.name === 'MistralAPIError') {
-          throw error;
-        }
         if (attempts === this.maxRetries - 1) throw error;
-        // eslint-disable-next-line max-len
-        await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, attempts + 1) * 500),
-        );
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempts + 1) * 500));
       }
     }
     throw new Error('Max retries reached');
+  }
+
+  /**
+   * Creates a completion request
+   * @param {*} model
+   * @param {*} prompt
+   * @param {*} suffix
+   * @param {*} temperature
+   * @param {*} maxTokens
+   * @param {*} topP
+   * @param {*} randomSeed
+   * @param {*} stop
+   * @param {*} stream
+   * @return {Promise<Object>}
+   */
+  _makeCompletionRequest = (
+    model: string,
+    prompt: string,
+    suffix?: string,
+    temperature?: number,
+    maxTokens?: number,
+    topP?: number,
+    randomSeed?: number,
+    stop?: string | string[],
+    stream?: boolean,
+  )=>{
+    // if modelDefault and model are undefined, throw an error
+    if (!model && !this.modelDefault) {
+      throw new MistralAPIError('You must provide a model name');
+    }
+    return {
+      model: model ?? this.modelDefault,
+      prompt: prompt,
+      suffix: suffix ?? undefined,
+      temperature: temperature ?? undefined,
+      max_tokens: maxTokens ?? undefined,
+      top_p: topP ?? undefined,
+      random_seed: randomSeed ?? undefined,
+      stop: stop ?? undefined,
+      stream: stream ?? undefined,
+    };
   };
 
   /**
@@ -207,20 +188,20 @@ class MistralClient {
    * @param {*} responseFormat
    * @return {Promise<Object>}
    */
-  _makeChatCompletionRequest = function(
-    model,
-    messages,
-    tools,
-    temperature,
-    maxTokens,
-    topP,
-    randomSeed,
-    stream,
-    safeMode,
-    safePrompt,
-    toolChoice,
-    responseFormat,
-  ) {
+  _makeChatCompletionRequest = (
+    model: string,
+    messages: Array<Message>,
+    tools?: Array<Tool>,
+    temperature?: number,
+    maxTokens?: number,
+    topP?: number,
+    randomSeed?: number,
+    stream?: boolean,
+    safeMode?: boolean,
+    safePrompt?: boolean,
+    toolChoice?: 'auto' | 'any' | 'none',
+    responseFormat?: ResponseFormat,
+  )=> {
     // if modelDefault and model are undefined, throw an error
     if (!model && !this.modelDefault) {
       throw new MistralAPIError('You must provide a model name');
@@ -241,54 +222,12 @@ class MistralClient {
   };
 
   /**
-   * Creates a completion request
-   * @param {*} model
-   * @param {*} prompt
-   * @param {*} suffix
-   * @param {*} temperature
-   * @param {*} maxTokens
-   * @param {*} topP
-   * @param {*} randomSeed
-   * @param {*} stop
-   * @param {*} stream
-   * @return {Promise<Object>}
-   */
-  _makeCompletionRequest = function(
-    model,
-    prompt,
-    suffix,
-    temperature,
-    maxTokens,
-    topP,
-    randomSeed,
-    stop,
-    stream,
-  ) {
-    // if modelDefault and model are undefined, throw an error
-    if (!model && !this.modelDefault) {
-      throw new MistralAPIError('You must provide a model name');
-    }
-    return {
-      model: model ?? this.modelDefault,
-      prompt: prompt,
-      suffix: suffix ?? undefined,
-      temperature: temperature ?? undefined,
-      max_tokens: maxTokens ?? undefined,
-      top_p: topP ?? undefined,
-      random_seed: randomSeed ?? undefined,
-      stop: stop ?? undefined,
-      stream: stream ?? undefined,
-    };
-  };
-
-  /**
    * Returns a list of the available models
-   * @return {Promise<Object>}
+   * @returnss
    */
-  listModels = async function() {
-    const response = await this._request('get', 'v1/models');
-    return response;
-  };
+  async listModels(): Promise<ListModelsResponse> {
+    return await this._request('get', 'v1/models');
+  }
 
   /**
    * A chat endpoint without streaming.
@@ -315,24 +254,21 @@ class MistralClient {
    * @param {*} [options.signal] - optional AbortSignal instance to control
    *                               request The signal will be combined with
    *                               default timeout signal
-   * @return {Promise<Object>}
+   * @return {Promise<ChatCompletionResponse>}
    */
-  chat = async function(
-    {
-      model,
-      messages,
-      tools,
-      temperature,
-      maxTokens,
-      topP,
-      randomSeed,
-      safeMode,
-      safePrompt,
-      toolChoice,
-      responseFormat,
-    },
-    {signal} = {},
-  ) {
+  async chat({
+    model,
+    messages,
+    tools,
+    temperature,
+    maxTokens,
+    topP,
+    randomSeed,
+    safeMode,
+    safePrompt,
+    toolChoice,
+    responseFormat,
+  }: ChatRequest, {signal}: ChatRequestOptions = {}): Promise<ChatCompletionResponse> {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -347,14 +283,8 @@ class MistralClient {
       toolChoice,
       responseFormat,
     );
-    const response = await this._request(
-      'post',
-      'v1/chat/completions',
-      request,
-      signal,
-    );
-    return response;
-  };
+    return await this._request('post', 'v1/chat/completions', request, signal);
+  }
 
   /**
    * A chat endpoint that streams responses.
@@ -381,24 +311,21 @@ class MistralClient {
    * @param {*} [options.signal] - optional AbortSignal instance to control
    *                               request The signal will be combined with
    *                               default timeout signal
-   * @return {Promise<Object>}
+   * @return {AsyncGenerator<ChatCompletionResponseChunk, void>}
    */
-  chatStream = async function* (
-    {
-      model,
-      messages,
-      tools,
-      temperature,
-      maxTokens,
-      topP,
-      randomSeed,
-      safeMode,
-      safePrompt,
-      toolChoice,
-      responseFormat,
-    },
-    {signal} = {},
-  ) {
+  async* chatStream({
+    model,
+    messages,
+    tools,
+    temperature,
+    maxTokens,
+    topP,
+    randomSeed,
+    safeMode,
+    safePrompt,
+    toolChoice,
+    responseFormat,
+  }: ChatRequest, {signal}: ChatRequestOptions = {}): AsyncGenerator<ChatCompletionResponseChunk, void> {
     const request = this._makeChatCompletionRequest(
       model,
       messages,
@@ -413,13 +340,7 @@ class MistralClient {
       toolChoice,
       responseFormat,
     );
-    const response = await this._request(
-      'post',
-      'v1/chat/completions',
-      request,
-      signal,
-    );
-
+    const response = await this._request('post', 'v1/chat/completions', request, signal);
     let buffer = '';
     const decoder = new TextDecoder();
     for await (const chunk of response) {
@@ -436,17 +357,16 @@ class MistralClient {
         }
       }
     }
-  };
+  }
 
   /**
    * An embeddings endpoint that returns embeddings for a single,
    * or batch of inputs
    * @param {*} model The embedding model to use, e.g. mistral-embed
-   * @param {*} input The input to embed,
-   * e.g. ['What is the best French cheese?']
-   * @return {Promise<Object>}
+   * @param {*} input The input to embed, e.g. ['What is the best French cheese?']
+   * @return {Promise<EmbeddingResponse>}
    */
-  embeddings = async function({model, input}) {
+  async embeddings({model, input}: { model: string; input: string }):Promise<EmbeddingResponse> {
     const request = {
       model: model,
       input: input,
@@ -478,10 +398,10 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  completion = async function(
-    {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop},
-    {signal} = {},
-  ) {
+  completion = async(
+    {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop}: CompletionRequest,
+    {signal}:ChatRequestOptions = {},
+  ) => {
     const request = this._makeCompletionRequest(
       model,
       prompt,
@@ -525,9 +445,9 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  completionStream = async function* (
-    {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop},
-    {signal} = {},
+  async* completionStream(
+    {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop}: CompletionRequest,
+    {signal}: ChatRequestOptions = {},
   ) {
     const request = this._makeCompletionRequest(
       model,
@@ -565,5 +485,3 @@ class MistralClient {
     }
   };
 }
-
-export default MistralClient;

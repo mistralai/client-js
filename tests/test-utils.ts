@@ -1,12 +1,20 @@
-import jest from 'jest-mock';
+import {jest} from '@jest/globals';
+import {ChatCompletionResponse, Embedding, EmbeddingResponse, ListModelsResponse} from '../src/types/mistral-client';
 
-/**
- * Mock the fetch function
- * @param {*} status
- * @param {*} payload
- * @return {Object}
- */
-export function mockFetch(status, payload) {
+interface FetchResponse {
+  json: () => Promise<any>;
+  text: () => Promise<string>;
+  status: number;
+  ok: boolean;
+}
+
+interface FetchStreamResponse {
+  status: number;
+  ok: boolean;
+  body: AsyncGenerator;
+}
+
+export function mockFetch(status: number, payload: any): jest.Mock<() => Promise<FetchResponse>> {
   return jest.fn(() =>
     Promise.resolve({
       json: () => Promise.resolve(payload),
@@ -17,20 +25,14 @@ export function mockFetch(status, payload) {
   );
 }
 
-/**
- * Mock fetch stream
- * @param {*} status
- * @param {*} payload
- * @return {Object}
- */
-export function mockFetchStream(status, payload) {
+export function mockFetchStream(
+  status: number,
+  payload: any[],
+): jest.Mock<() => Promise<FetchStreamResponse>> {
   const asyncIterator = async function* () {
     while (true) {
-      // Read from the stream
       const value = payload.shift();
-      // Exit if we're done
       if (!value) return;
-      // Else yield the chunk
       yield value;
     }
   };
@@ -45,11 +47,7 @@ export function mockFetchStream(status, payload) {
   );
 }
 
-/**
- * Mock models list
- * @return {Object}
- */
-export function mockListModels() {
+export function mockListModels(): ListModelsResponse {
   return {
     object: 'list',
     data: [
@@ -153,11 +151,7 @@ export function mockListModels() {
   };
 }
 
-/**
- * Mock chat completion object
- * @return {Object}
- */
-export function mockChatResponsePayload() {
+export function mockChatResponsePayload(): ChatCompletionResponse {
   return {
     id: 'chat-98c8c60e3fbf4fc49658eddaf447357c',
     object: 'chat.completion',
@@ -177,13 +171,11 @@ export function mockChatResponsePayload() {
   };
 }
 
-/**
- * Mock chat completion stream
- * @return {Object}
- */
-export function mockChatResponseStreamingPayload() {
+export function mockChatResponseStreamingPayload(): Uint8Array[] {
   const encoder = new TextEncoder();
-  const firstMessage = [
+
+  // Initial message
+  const firstMessage: Uint8Array[] = [
     encoder.encode(
       'data: ' +
         JSON.stringify({
@@ -200,9 +192,12 @@ export function mockChatResponseStreamingPayload() {
         '\n\n',
     ),
   ];
-  const lastMessage = [encoder.encode('data: [DONE]\n\n')];
 
-  const dataMessages = [];
+  // Final message
+  const lastMessage: Uint8Array[] = [encoder.encode('data: [DONE]\n\n')];
+
+  // Streamed data messages
+  const dataMessages: Uint8Array[] = [];
   for (let i = 0; i < 10; i++) {
     dataMessages.push(
       encoder.encode(
@@ -211,6 +206,7 @@ export function mockChatResponseStreamingPayload() {
             id: 'cmpl-8cd9019d21ba490aa6b9740f5d0a883e',
             object: 'chat.completion.chunk',
             created: 1703168544,
+
             model: 'mistral-small-latest',
             choices: [
               {
@@ -225,36 +221,38 @@ export function mockChatResponseStreamingPayload() {
     );
   }
 
+  // Combine first, data, and last messages
   return firstMessage.concat(dataMessages).concat(lastMessage);
 }
 
 /**
  * Mock embeddings response
- * @param {number} batchSize
- * @return {Object}
+ * @param batchSize number of embeddings to generate
+ * @return EmbeddingResponsePayload
  */
-export function mockEmbeddingResponsePayload(batchSize = 1) {
+export function mockEmbeddingResponsePayload(batchSize: number = 1): EmbeddingResponse {
+  const data: Embedding[] = [];
+
+  // Create 'batchSize' copies of the embedding object
+  for (let i = 0; i < batchSize; i++) {
+    data.push({
+      id: i.toString(),
+      object: 'embedding',
+      embedding: [-0.018585205078125, 0.027099609375, 0.02587890625],
+    });
+  }
+
   return {
     id: 'embd-98c8c60e3fbf4fc49658eddaf447357c',
     object: 'list',
-    data:
-      [
-        {
-          object: 'embedding',
-          embedding: [-0.018585205078125, 0.027099609375, 0.02587890625],
-          index: 0,
-        },
-      ] * batchSize,
+    data: data,
     model: 'mistral-embed',
     usage: {prompt_tokens: 90, total_tokens: 90, completion_tokens: 0},
   };
 }
 
-/**
- * Mock embeddings request payload
- * @return {Object}
- */
-export function mockEmbeddingRequest() {
+// TODO:
+export function mockEmbeddingRequest(): any {
   return {
     model: 'mistral-embed',
     input: 'embed',

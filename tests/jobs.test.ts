@@ -1,14 +1,14 @@
-import MistralClient from '../src/client';
+import MistralClient from '../src/mistral-client';
 import {
   mockFetch,
   mockJobResponsePayload,
   mockJobsResponsePayload,
   mockDeletedJobResponsePayload,
-} from './utils';
+} from './test-utils';
 
 // Test the jobs endpoint
 describe('Mistral Client', () => {
-  let client;
+  let client : MistralClient;
   beforeEach(() => {
     client = new MistralClient();
   });
@@ -17,7 +17,7 @@ describe('Mistral Client', () => {
     it('should return a job response object', async() => {
       // Mock the fetch function
       const mockResponse = mockJobResponsePayload();
-      client._fetch = mockFetch(200, mockResponse);
+      client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.jobs.create({
         model: 'mistral-medium',
@@ -36,7 +36,7 @@ describe('Mistral Client', () => {
     it('should return a job response object', async() => {
       // Mock the fetch function
       const mockResponse = mockJobResponsePayload();
-      client._fetch = mockFetch(200, mockResponse);
+      client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.jobs.retrieve({
         jobId: 'jobId',
@@ -49,7 +49,7 @@ describe('Mistral Client', () => {
     it('should return a list of jobs response object', async() => {
       // Mock the fetch function
       const mockResponse = mockJobsResponsePayload();
-      client._fetch = mockFetch(200, mockResponse);
+      client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.jobs.list();
       expect(response).toEqual(mockResponse);
@@ -60,7 +60,7 @@ describe('Mistral Client', () => {
     it('should return a deleted job response object', async() => {
       // Mock the fetch function
       const mockResponse = mockDeletedJobResponsePayload();
-      client._fetch = mockFetch(200, mockResponse);
+      client['_fetch'] = mockFetch(200, mockResponse) as any;
 
       const response = await client.jobs.cancel({
         jobId: 'jobId',
