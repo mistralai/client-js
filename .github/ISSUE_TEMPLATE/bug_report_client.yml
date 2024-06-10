@@ -1,0 +1,55 @@
+name: Bug report related to the JS client
+description: Submit a bug report that's related to the JS client
+title: '[BUG CLIENT]: '
+labels: ['bug client', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: node-v
+    attributes:
+      label: Node -v
+      description: Run `node -v`
+      placeholder: Copy-paste the output (no need for backticks, will be formatted into code automatically)
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: npm-ls
+    attributes:
+      label: NPM ls
+      description: Run `npm ls --depth=0`
+      placeholder: Copy-paste the output (no need for backticks, will be formatted into code automatically)
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Reproduction Steps
+      description: Provide a clear and concise description of the steps that lead to your issue.
+      placeholder: |
+        1. First step...
+        2. Step 2...
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Explain briefly what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any context about your problem that you deem relevant.
+  - type: textarea
+    id: suggested-solutions
+    attributes:
+      label: Suggested Solutions
+      description: Please list any solutions you recommend we consider.
