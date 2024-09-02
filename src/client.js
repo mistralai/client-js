@@ -107,7 +107,7 @@ class MistralClient {
    * @param {*} formData
    * @return {Promise<*>}
    */
-  _request = async function(method, path, request, signal, formData = null) {
+  async _request(method, path, request, signal, formData = null) {
     const url = `${this.endpoint}/${path}`;
     const options = {
       method: method,
@@ -207,7 +207,7 @@ class MistralClient {
    * @param {*} responseFormat
    * @return {Promise<Object>}
    */
-  _makeChatCompletionRequest = function(
+  _makeChatCompletionRequest(
     model,
     messages,
     tools,
@@ -253,7 +253,7 @@ class MistralClient {
    * @param {*} stream
    * @return {Promise<Object>}
    */
-  _makeCompletionRequest = function(
+  _makeCompletionRequest(
     model,
     prompt,
     suffix,
@@ -285,7 +285,7 @@ class MistralClient {
    * Returns a list of the available models
    * @return {Promise<Object>}
    */
-  listModels = async function() {
+  async listModels() {
     const response = await this._request('get', 'v1/models');
     return response;
   };
@@ -317,7 +317,7 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  chat = async function(
+  async chat(
     {
       model,
       messages,
@@ -383,7 +383,7 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  chatStream = async function* (
+  async * chatStream(
     {
       model,
       messages,
@@ -446,7 +446,7 @@ class MistralClient {
    * e.g. ['What is the best French cheese?']
    * @return {Promise<Object>}
    */
-  embeddings = async function({model, input}) {
+  async embeddings({model, input}) {
     const request = {
       model: model,
       input: input,
@@ -478,7 +478,7 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  completion = async function(
+  async completion(
     {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop},
     {signal} = {},
   ) {
@@ -525,7 +525,7 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  completionStream = async function* (
+  async * completionStream(
     {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop},
     {signal} = {},
   ) {
