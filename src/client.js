@@ -383,7 +383,7 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  async * chatStream(
+  async* chatStream(
     {
       model,
       messages,
@@ -525,7 +525,7 @@ class MistralClient {
    *                               default timeout signal
    * @return {Promise<Object>}
    */
-  async * completionStream(
+  async* completionStream(
     {model, prompt, suffix, temperature, maxTokens, topP, randomSeed, stop},
     {signal} = {},
   ) {
