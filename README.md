@@ -1,3 +1,13 @@
+# 📢🚨 This repository is now archived 📢🚨
+
+We have deprecated this package in favor of [mistralai/client-ts](https://github.com/mistralai/client-ts), which is the new official Mistral client, compatibile with both Typescript and Javascript.
+
+You can find all installation information [here](https://github.com/mistralai/client-ts?tab=readme-ov-file#sdk-installation).
+
+This change is effective starting with version 1.0.0 of the [npm package](https://www.npmjs.com/package/@mistralai/mistralai?activeTab=readme).
+
+--- 
+
 This JavaScript client is inspired from [cohere-typescript](https://github.com/cohere-ai/cohere-typescript)
 
 # Mistral JavaScript Client
